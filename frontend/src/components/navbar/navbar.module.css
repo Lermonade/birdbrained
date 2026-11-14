@@ -1,3 +1,20 @@
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--text);
+  text-decoration: none;
+  letter-spacing: -0.5px;
+}
+
+.logoImage {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+}
+
 .navbar {
   display: flex;
   align-items: center;
@@ -10,7 +27,7 @@
 
 .logo {
   font-size: 1.5rem;
-  font-weight: 800;
+  font-weight: 500;
   color: var;
   text-decoration: none;
   letter-spacing: -0.5px;

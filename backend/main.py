@@ -119,6 +119,29 @@ def get_detail(species: str, region: str) -> dict:
     return store.detail(species, region)
 
 
+@app.get("/api/grab_data")
+def grab_data(species: str | None = None, start: int | None = None, end: int | None = None) -> dict:
+    """Raw sighting counts for the globe: one point per state, with the change from start to end year.
+
+    species is a comma-separated list of keys (default: all). start and end are years (default: the
+    full range in availableYears). States where the species has no records in either year are left out.
+    """
+    keys = [k.strip() for k in species.split(",") if k.strip()] if species else [s["key"] for s in store.species()]
+    for key in keys:
+        require_species(key)
+    years = store.years()
+    start = years[0] if start is None else start
+    end = years[-1] if end is None else end
+    if start not in years or end not in years or start > end:
+        raise ApiError(400, "bad_request", f"start and end must be years from {years[0]} to {years[-1]}, start <= end.")
+    return {
+        "startYear": start,
+        "endYear": end,
+        "availableYears": {"start": years[0], "end": years[-1]},
+        "species": [store.raw_change(key, start, end) for key in keys],
+    }
+
+
 class AskRequest(BaseModel):
     question: str = Field(min_length=1, max_length=500)
     species: str

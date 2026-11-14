@@ -92,6 +92,43 @@ def counts(species_key: str, region_id: str) -> list[int] | None:
     return _pipeline("counts.json").get(species_key, {}).get(region_id)
 
 
+def years() -> list[int]:
+    """The years the bird data covers."""
+    return series(species()[0]["key"])["years"]
+
+
+def _change_pct(before: int, after: int) -> float | None:
+    return round((after - before) / before * 100, 1) if before else None
+
+
+def raw_change(species_key: str, start: int, end: int) -> dict:
+    """Raw sighting counts per state in two years, and the change between them.
+
+    allBirdsChangePct is the change in sightings of all birds in the same state, which shows how
+    much of a species' change comes from more people birding.
+    """
+    all_years = years()
+    i, j = all_years.index(start), all_years.index(end)
+    points = []
+    for region in regions():
+        n = counts(species_key, region["id"])
+        if not n or (n[i] == 0 and n[j] == 0):
+            continue
+        all_birds = effort(region["id"])
+        points.append({
+            "region": region["id"],
+            "name": region["name"],
+            "lat": region["centroid"][0],
+            "lng": region["centroid"][1],
+            "startCount": n[i],
+            "endCount": n[j],
+            "change": n[j] - n[i],
+            "changePct": _change_pct(n[i], n[j]),
+            "allBirdsChangePct": _change_pct(all_birds[i]["records"], all_birds[j]["records"]),
+        })
+    return {"key": species_key, "name": find_species(species_key)["commonName"], "dataPoints": points}
+
+
 def same_direction(other: dict | None, trend: dict | None) -> bool | None:
     """Whether another source's change per year has the same sign as our trend."""
     if other is None or trend is None:

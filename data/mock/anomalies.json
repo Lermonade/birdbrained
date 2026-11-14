@@ -35,6 +35,23 @@
   },
   {
     "id": "a_0003",
+    "type": "sudden_change",
+    "species": "carolina_wren",
+    "region": "US-KY",
+    "years": [
+      2018,
+      2018
+    ],
+    "direction": "down",
+    "headline": "Carolina Wren dropped sharply in Kentucky in 2018",
+    "changePerYear": 0.3,
+    "z": 14.1,
+    "score": 14.1,
+    "sufficiency": "good",
+    "confirmedBySecondSource": false
+  },
+  {
+    "id": "a_0004",
     "type": "regional_divergence",
     "species": "eurasian_collared_dove",
     "region": "US-WA",
@@ -49,23 +66,6 @@
     "score": 11.6,
     "sufficiency": "good",
     "confirmedBySecondSource": true
-  },
-  {
-    "id": "a_0004",
-    "type": "sudden_change",
-    "species": "carolina_wren",
-    "region": "US-KY",
-    "years": [
-      2018,
-      2018
-    ],
-    "direction": "down",
-    "headline": "Carolina Wren dropped sharply in Kentucky in 2018",
-    "changePerYear": 0.3,
-    "z": 10.1,
-    "score": 10.1,
-    "sufficiency": "good",
-    "confirmedBySecondSource": false
   },
   {
     "id": "a_0005",

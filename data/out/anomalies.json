@@ -1,0 +1,512 @@
+[
+  {
+    "id": "a_0001",
+    "type": "sudden_change",
+    "species": "carolina_wren",
+    "region": "US-WI",
+    "years": [
+      2013,
+      2014
+    ],
+    "direction": "up",
+    "headline": "Carolina Wren jumped sharply in Wisconsin from 2013 to 2014",
+    "changePerYear": 7.6,
+    "z": 19.6,
+    "score": 14.7,
+    "sufficiency": "limited",
+    "confirmedBySecondSource": false
+  },
+  {
+    "id": "a_0002",
+    "type": "sudden_change",
+    "species": "wood_thrush",
+    "region": "US-SC",
+    "years": [
+      2010,
+      2010
+    ],
+    "direction": "up",
+    "headline": "Wood Thrush jumped sharply in South Carolina in 2010",
+    "changePerYear": 0.5,
+    "z": 9.3,
+    "score": 9.3,
+    "sufficiency": "good",
+    "confirmedBySecondSource": false
+  },
+  {
+    "id": "a_0003",
+    "type": "sudden_change",
+    "species": "carolina_wren",
+    "region": "US-MA",
+    "years": [
+      2015,
+      2018
+    ],
+    "direction": "down",
+    "headline": "Carolina Wren dropped sharply in Massachusetts from 2015 to 2018",
+    "changePerYear": 8.1,
+    "z": 8.6,
+    "score": 8.6,
+    "sufficiency": "good",
+    "confirmedBySecondSource": false
+  },
+  {
+    "id": "a_0004",
+    "type": "sudden_change",
+    "species": "eurasian_collared_dove",
+    "region": "US-OR",
+    "years": [
+      2010,
+      2011
+    ],
+    "direction": "down",
+    "headline": "Eurasian Collared-Dove dropped sharply in Oregon from 2010 to 2011",
+    "changePerYear": 2.7,
+    "z": 8.3,
+    "score": 8.3,
+    "sufficiency": "good",
+    "confirmedBySecondSource": false
+  },
+  {
+    "id": "a_0005",
+    "type": "sudden_change",
+    "species": "carolina_wren",
+    "region": "US-NY",
+    "years": [
+      2015,
+      2018
+    ],
+    "direction": "down",
+    "headline": "Carolina Wren dropped sharply in New York from 2015 to 2018",
+    "changePerYear": 7.6,
+    "z": 6.4,
+    "score": 8.1,
+    "sufficiency": "good",
+    "confirmedBySecondSource": true
+  },
+  {
+    "id": "a_0006",
+    "type": "sudden_change",
+    "species": "eastern_meadowlark",
+    "region": "US-CT",
+    "years": [
+      2025,
+      2025
+    ],
+    "direction": "up",
+    "headline": "Eastern Meadowlark jumped sharply in Connecticut in 2025",
+    "changePerYear": -7.1,
+    "z": 8.1,
+    "score": 8.1,
+    "sufficiency": "good",
+    "confirmedBySecondSource": false
+  },
+  {
+    "id": "a_0007",
+    "type": "sudden_change",
+    "species": "chimney_swift",
+    "region": "US-SC",
+    "years": [
+      2010,
+      2013
+    ],
+    "direction": "up",
+    "headline": "Chimney Swift jumped sharply in South Carolina from 2010 to 2013",
+    "changePerYear": -3.1,
+    "z": 7.8,
+    "score": 7.8,
+    "sufficiency": "good",
+    "confirmedBySecondSource": false
+  },
+  {
+    "id": "a_0008",
+    "type": "sudden_change",
+    "species": "bald_eagle",
+    "region": "US-OH",
+    "years": [
+      2020,
+      2020
+    ],
+    "direction": "down",
+    "headline": "Bald Eagle dropped sharply in Ohio in 2020",
+    "changePerYear": 3.7,
+    "z": 6.2,
+    "score": 7.7,
+    "sufficiency": "good",
+    "confirmedBySecondSource": true
+  },
+  {
+    "id": "a_0009",
+    "type": "sudden_change",
+    "species": "eurasian_collared_dove",
+    "region": "US-WA",
+    "years": [
+      2010,
+      2011
+    ],
+    "direction": "down",
+    "headline": "Eurasian Collared-Dove dropped sharply in Washington from 2010 to 2011",
+    "changePerYear": 4.1,
+    "z": 7.7,
+    "score": 7.7,
+    "sufficiency": "good",
+    "confirmedBySecondSource": false
+  },
+  {
+    "id": "a_0010",
+    "type": "sudden_change",
+    "species": "carolina_wren",
+    "region": "US-KY",
+    "years": [
+      2015,
+      2015
+    ],
+    "direction": "down",
+    "headline": "Carolina Wren dropped sharply in Kentucky in 2015",
+    "changePerYear": 2.9,
+    "z": 7.5,
+    "score": 7.5,
+    "sufficiency": "good",
+    "confirmedBySecondSource": false
+  },
+  {
+    "id": "a_0011",
+    "type": "sudden_change",
+    "species": "eastern_meadowlark",
+    "region": "US-FL",
+    "years": [
+      2010,
+      2010
+    ],
+    "direction": "up",
+    "headline": "Eastern Meadowlark jumped sharply in Florida in 2010",
+    "changePerYear": -1.9,
+    "z": 6.0,
+    "score": 7.5,
+    "sufficiency": "good",
+    "confirmedBySecondSource": true
+  },
+  {
+    "id": "a_0012",
+    "type": "sudden_change",
+    "species": "carolina_wren",
+    "region": "US-IL",
+    "years": [
+      2021,
+      2022
+    ],
+    "direction": "down",
+    "headline": "Carolina Wren dropped sharply in Illinois from 2021 to 2022",
+    "changePerYear": 4.7,
+    "z": 5.8,
+    "score": 7.2,
+    "sufficiency": "good",
+    "confirmedBySecondSource": true
+  },
+  {
+    "id": "a_0013",
+    "type": "sudden_change",
+    "species": "carolina_wren",
+    "region": "US-VT",
+    "years": [
+      2013,
+      2013
+    ],
+    "direction": "up",
+    "headline": "Carolina Wren jumped sharply in Vermont in 2013",
+    "changePerYear": 11.3,
+    "z": 7.1,
+    "score": 7.1,
+    "sufficiency": "good",
+    "confirmedBySecondSource": false
+  },
+  {
+    "id": "a_0014",
+    "type": "sudden_change",
+    "species": "eurasian_collared_dove",
+    "region": "US-AK",
+    "years": [
+      2021,
+      2022
+    ],
+    "direction": "down",
+    "headline": "Eurasian Collared-Dove dropped sharply in Alaska from 2021 to 2022",
+    "changePerYear": -2.3,
+    "z": 6.9,
+    "score": 6.9,
+    "sufficiency": "good",
+    "confirmedBySecondSource": false
+  },
+  {
+    "id": "a_0015",
+    "type": "sudden_change",
+    "species": "carolina_wren",
+    "region": "US-ME",
+    "years": [
+      2015,
+      2019
+    ],
+    "direction": "down",
+    "headline": "Carolina Wren dropped sharply in Maine from 2015 to 2019",
+    "changePerYear": 11.7,
+    "z": 6.8,
+    "score": 6.8,
+    "sufficiency": "good",
+    "confirmedBySecondSource": false
+  },
+  {
+    "id": "a_0016",
+    "type": "sudden_change",
+    "species": "carolina_wren",
+    "region": "US-NH",
+    "years": [
+      2013,
+      2013
+    ],
+    "direction": "up",
+    "headline": "Carolina Wren jumped sharply in New Hampshire in 2013",
+    "changePerYear": 13.7,
+    "z": 6.8,
+    "score": 6.8,
+    "sufficiency": "good",
+    "confirmedBySecondSource": false
+  },
+  {
+    "id": "a_0017",
+    "type": "sudden_change",
+    "species": "carolina_wren",
+    "region": "US-MI",
+    "years": [
+      2014,
+      2019
+    ],
+    "direction": "down",
+    "headline": "Carolina Wren dropped sharply in Michigan from 2014 to 2019",
+    "changePerYear": 10.7,
+    "z": 6.7,
+    "score": 6.7,
+    "sufficiency": "good",
+    "confirmedBySecondSource": false
+  },
+  {
+    "id": "a_0018",
+    "type": "sudden_change",
+    "species": "carolina_wren",
+    "region": "US-NE",
+    "years": [
+      2016,
+      2018
+    ],
+    "direction": "up",
+    "headline": "Carolina Wren jumped sharply in Nebraska from 2016 to 2018",
+    "changePerYear": 3.0,
+    "z": 6.7,
+    "score": 6.7,
+    "sufficiency": "good",
+    "confirmedBySecondSource": false
+  },
+  {
+    "id": "a_0019",
+    "type": "sudden_change",
+    "species": "carolina_wren",
+    "region": "US-OH",
+    "years": [
+      2013,
+      2013
+    ],
+    "direction": "up",
+    "headline": "Carolina Wren jumped sharply in Ohio in 2013",
+    "changePerYear": 6.6,
+    "z": 5.3,
+    "score": 6.6,
+    "sufficiency": "good",
+    "confirmedBySecondSource": true
+  },
+  {
+    "id": "a_0020",
+    "type": "sudden_change",
+    "species": "western_meadowlark",
+    "region": "US-WI",
+    "years": [
+      2013,
+      2013
+    ],
+    "direction": "up",
+    "headline": "Western Meadowlark jumped sharply in Wisconsin in 2013",
+    "changePerYear": -8.8,
+    "z": 6.6,
+    "score": 6.6,
+    "sufficiency": "good",
+    "confirmedBySecondSource": false
+  },
+  {
+    "id": "a_0021",
+    "type": "sudden_change",
+    "species": "black_vulture",
+    "region": "US-FL",
+    "years": [
+      2023,
+      2025
+    ],
+    "direction": "down",
+    "headline": "Black Vulture dropped sharply in Florida from 2023 to 2025",
+    "changePerYear": -0.9,
+    "z": 5.2,
+    "score": 6.5,
+    "sufficiency": "good",
+    "confirmedBySecondSource": true
+  },
+  {
+    "id": "a_0022",
+    "type": "sudden_change",
+    "species": "carolina_wren",
+    "region": "US-RI",
+    "years": [
+      2014,
+      2014
+    ],
+    "direction": "up",
+    "headline": "Carolina Wren jumped sharply in Rhode Island in 2014",
+    "changePerYear": 16.3,
+    "z": 8.5,
+    "score": 6.4,
+    "sufficiency": "limited",
+    "confirmedBySecondSource": false
+  },
+  {
+    "id": "a_0023",
+    "type": "sudden_change",
+    "species": "western_meadowlark",
+    "region": "US-OK",
+    "years": [
+      2017,
+      2018
+    ],
+    "direction": "up",
+    "headline": "Western Meadowlark jumped sharply in Oklahoma from 2017 to 2018",
+    "changePerYear": -2.1,
+    "z": 8.5,
+    "score": 6.4,
+    "sufficiency": "limited",
+    "confirmedBySecondSource": false
+  },
+  {
+    "id": "a_0024",
+    "type": "sudden_change",
+    "species": "eurasian_collared_dove",
+    "region": "US-ID",
+    "years": [
+      2010,
+      2012
+    ],
+    "direction": "down",
+    "headline": "Eurasian Collared-Dove dropped sharply in Idaho from 2010 to 2012",
+    "changePerYear": 4.3,
+    "z": 6.3,
+    "score": 6.3,
+    "sufficiency": "good",
+    "confirmedBySecondSource": false
+  },
+  {
+    "id": "a_0025",
+    "type": "sudden_change",
+    "species": "carolina_wren",
+    "region": "US-MO",
+    "years": [
+      2021,
+      2022
+    ],
+    "direction": "down",
+    "headline": "Carolina Wren dropped sharply in Missouri from 2021 to 2022",
+    "changePerYear": 4.3,
+    "z": 6.1,
+    "score": 6.1,
+    "sufficiency": "good",
+    "confirmedBySecondSource": false
+  },
+  {
+    "id": "a_0026",
+    "type": "sudden_change",
+    "species": "carolina_wren",
+    "region": "US-WV",
+    "years": [
+      2025,
+      2025
+    ],
+    "direction": "down",
+    "headline": "Carolina Wren dropped sharply in West Virginia in 2025",
+    "changePerYear": 5.2,
+    "z": 6.1,
+    "score": 6.1,
+    "sufficiency": "good",
+    "confirmedBySecondSource": false
+  },
+  {
+    "id": "a_0027",
+    "type": "sudden_change",
+    "species": "carolina_wren",
+    "region": "US-CT",
+    "years": [
+      2015,
+      2018
+    ],
+    "direction": "down",
+    "headline": "Carolina Wren dropped sharply in Connecticut from 2015 to 2018",
+    "changePerYear": 9.3,
+    "z": 5.7,
+    "score": 5.7,
+    "sufficiency": "good",
+    "confirmedBySecondSource": false
+  },
+  {
+    "id": "a_0028",
+    "type": "sudden_change",
+    "species": "carolina_wren",
+    "region": "US-IN",
+    "years": [
+      2021,
+      2021
+    ],
+    "direction": "down",
+    "headline": "Carolina Wren dropped sharply in Indiana in 2021",
+    "changePerYear": 3.7,
+    "z": 4.5,
+    "score": 5.7,
+    "sufficiency": "good",
+    "confirmedBySecondSource": true
+  },
+  {
+    "id": "a_0029",
+    "type": "sudden_change",
+    "species": "eastern_meadowlark",
+    "region": "US-TX",
+    "years": [
+      2010,
+      2010
+    ],
+    "direction": "up",
+    "headline": "Eastern Meadowlark jumped sharply in Texas in 2010",
+    "changePerYear": -2.5,
+    "z": 4.5,
+    "score": 5.7,
+    "sufficiency": "good",
+    "confirmedBySecondSource": true
+  },
+  {
+    "id": "a_0030",
+    "type": "sudden_change",
+    "species": "western_meadowlark",
+    "region": "US-AZ",
+    "years": [
+      2017,
+      2017
+    ],
+    "direction": "up",
+    "headline": "Western Meadowlark jumped sharply in Arizona in 2017",
+    "changePerYear": -2.1,
+    "z": 5.7,
+    "score": 5.7,
+    "sufficiency": "good",
+    "confirmedBySecondSource": false
+  }
+]

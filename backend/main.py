@@ -97,7 +97,7 @@ def list_regions() -> list[dict]:
 
 @app.get("/api/series")
 def get_series(species: str) -> dict:
-    """Raw and corrected index for every region and year of one species."""
+    """Raw-sightings index (and the corrected index, no longer shown) for every region and year of one species."""
     require_species(species)
     return store.series(species)
 
@@ -147,6 +147,8 @@ class AskRequest(BaseModel):
     species: str
     region: str
     year: int | None = None
+    start: int | None = None  # the start and end years on screen, as sent to /api/grab_data
+    end: int | None = None
 
 
 @app.post("/api/ask")
@@ -156,4 +158,4 @@ def ask(body: AskRequest) -> dict:
     Returns 503 with the code analyst_unavailable when Gemini fails and no saved answer exists."""
     require_species(body.species)
     require_region(body.region)
-    return analyst.ask(body.question, body.species, body.region, body.year)
+    return analyst.ask(body.question, body.species, body.region, body.year, body.start, body.end)

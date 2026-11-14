@@ -81,7 +81,8 @@ class Answer(BaseModel):
     next_steps: list[str]
 
 
-def ask(question: str, species_key: str, region_id: str, year: int | None = None) -> dict:
+def ask(question: str, species_key: str, region_id: str, year: int | None = None,
+        start: int | None = None, end: int | None = None) -> dict:
     question = " ".join(question.split())
     species = store.find_species(species_key)
     region = store.find_region(region_id)
@@ -103,7 +104,7 @@ def ask(question: str, species_key: str, region_id: str, year: int | None = None
         return saved
 
     deadline = time.monotonic() + QUESTION_BUDGET_S
-    message = prompts.user_message(question, species, region, year)
+    message = prompts.user_message(question, species, region, year, start, end)
     for model in _models_to_try():
         if time.monotonic() > deadline:
             break
@@ -262,17 +263,18 @@ def _mock_answer(species: dict, region: dict) -> dict:
     time.sleep(MOCK_DELAY_S)
     args = {"species": species["key"], "region": region["id"]}
     detail = store.detail(species["key"], region["id"])
-    trend, raw = detail["trend"], detail["rawTrend"]
-    span = f"{detail['climate'][0]['year']} to {detail['climate'][-1]['year']}"
+    trend, all_birds = detail["trend"], detail["allBirdsTrend"]
+    years = store.years()
+    span = f"{years[0]} to {years[-1]}"
     answer = {
-        "summary": f"Mock answer: no GEMINI_API_KEY is set. Corrected for observer growth, {species['commonName']} "
-        f"in {region['name']} changed {trend['changePerYear']:+.1f}% a year from {span}; raw sightings changed "
-        f"{raw['changePerYear']:+.1f}% a year.",
+        "summary": f"Mock answer: no GEMINI_API_KEY is set. Sightings of {species['commonName']} in "
+        f"{region['name']} changed {trend['changePerYear']:+.1f}% a year from {span}; sightings of all birds "
+        f"there changed {all_birds['changePerYear']:+.1f}% a year.",
         "data_check": {"sufficient": True, "note": "Enough years pass the sampling thresholds."},
         "evidence": [
-            {"claim": f"Corrected index changed {trend['changePerYear']:+.1f}% a year "
+            {"claim": f"Sightings changed {trend['changePerYear']:+.1f}% a year "
              f"(interval {trend['low']:+.1f} to {trend['high']:+.1f})", "tool": "get_trend"},
-            {"claim": f"Raw index changed {raw['changePerYear']:+.1f}% a year", "tool": "get_trend"},
+            {"claim": f"Sightings of all birds changed {all_birds['changePerYear']:+.1f}% a year", "tool": "get_trend"},
         ],
         "hypotheses": [{"cause": "Placeholder cause", "support": ["Placeholder"], "against": ["Placeholder"],
                         "confidence": "untested"}],

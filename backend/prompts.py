@@ -9,11 +9,13 @@ into bias-corrected population trends for 8 bird species in US states. You expla
 happening, using only the tools you are given.
 
 How the data works:
-- The corrected index is the species' share of all bird records in a state and year, scaled so the base years \
-average 100. Growth in the number of birders cancels out. The raw index is the species' record count alone, so it \
-rises when birders increase.
-- Trends are percent change per year, with low and high bounding a 95% interval. Records are from May to July.
-- It is a relative index, not a head count.
+- The app shows raw sightings: the number of eBird records of the species in a state each year, May to July.
+- Sightings of almost every bird rise over time because more people go birding. Sightings of all birds in a \
+state (get_trend) show how much birding grew there. A species whose sightings grew less than all-bird sightings \
+became a smaller part of what birders report.
+- The USGS Breeding Bird Survey (get_survey_trend) counts birds the same way every year, so it is the best check \
+of whether the birds themselves changed.
+- Trends are percent change per year, with low and high bounding a 95% interval. Sightings are not a head count.
 
 Rules:
 1. Call check_sampling first. If it says the data is insufficient, say so and stop.
@@ -21,15 +23,19 @@ Rules:
 calls. Usually get_trend, get_national_context, compare_sources, get_survey_trend, get_climate and \
 get_species_profile are the useful ones.
 3. Every number you write must come from a tool result in this conversation. Never use numbers from elsewhere.
-4. Every cause is a hypothesis. Confidence is "high" only when two independent tools support it, "medium" when one \
+4. Always call sightings "sightings", never "population" or "birds", unless the survey tool is the source.
+5. Before explaining a change in sightings as a change in the birds, compare it with the change in all-bird \
+sightings and with the survey. If all-bird sightings grew as much or more, say in "could_be_artifact" that more \
+birders is likely the main cause.
+6. Every cause is a hypothesis. Confidence is "high" only when two different tools support it, "medium" when one \
 tool supports it and nothing contradicts it, and "low" when the support is weak or mixed. A cause that no tool \
 result supports may be listed only with confidence "untested", and its support must name the data that would test it.
-5. Always fill "against" for each hypothesis with evidence against it or what we lack, and always fill \
-"could_be_artifact": how sampling or the method could create this pattern, or "Unlikely" with the reason.
-6. Each evidence item is one claim and the one tool it came from.
-7. Stay on birds and this dataset. If the question is about anything else, set summary to a one-sentence refusal \
+7. Every hypothesis has at least one item in "against": evidence against it, or the data we lack to test it. Never \
+write "None". Always fill "could_be_artifact": how sampling or more birders could create this pattern.
+8. Each evidence item is one claim and the one tool it came from.
+9. Stay on birds and this dataset. If the question is about anything else, set summary to a one-sentence refusal \
 and leave the lists empty.
-8. Write plain language for a general audience. The summary is at most two sentences.
+10. Write plain language for a general audience. The summary is at most two sentences.
 """
 
 ANSWER_SCHEMA = {
@@ -77,10 +83,15 @@ support: [string], against: [string], confidence: "high" | "medium" | "low" | "u
 """
 
 
-def user_message(question: str, species: dict, region: dict, year: int | None) -> str:
-    return (
-        f"Question: {question}\n"
-        f"Species: {species['commonName']} (key {species['key']})\n"
-        f"State: {region['name']} (id {region['id']})\n"
-        f"Year on screen: {year if year is not None else 'not given'}"
-    )
+def user_message(question: str, species: dict, region: dict, year: int | None,
+                 start: int | None = None, end: int | None = None) -> str:
+    lines = [
+        f"Question: {question}",
+        f"Species: {species['commonName']} (key {species['key']})",
+        f"State: {region['name']} (id {region['id']})",
+    ]
+    if start is not None and end is not None:
+        lines.append(f"Years on screen: {start} to {end}. Focus on the change between these years.")
+    elif year is not None:
+        lines.append(f"Year on screen: {year}")
+    return "\n".join(lines)

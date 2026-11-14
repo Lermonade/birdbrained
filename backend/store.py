@@ -8,6 +8,7 @@ writes its file. Files are read once; restart the server to pick up new ones.
 from __future__ import annotations
 
 import json
+import math
 from functools import lru_cache
 from pathlib import Path
 
@@ -97,8 +98,25 @@ def years() -> list[int]:
     return series(species()[0]["key"])["years"]
 
 
-def _change_pct(before: int, after: int) -> float | None:
+def change_pct(before: int, after: int) -> float | None:
     return round((after - before) / before * 100, 1) if before else None
+
+
+def all_birds_trend(region_id: str) -> dict:
+    """Percent change per year in sightings of all birds in a state (Theil-Sen slope of the log).
+
+    This is the "more birders" baseline that a species' raw sightings should be read against.
+    """
+    rows = [r for r in effort(region_id) if r["records"] > 0]
+    slopes = sorted(
+        (math.log(b["records"]) - math.log(a["records"])) / (b["year"] - a["year"])
+        for i, a in enumerate(rows) for b in rows[i + 1:]
+    )
+    if not slopes:
+        return {"changePerYear": None}
+    mid = len(slopes) // 2
+    slope = slopes[mid] if len(slopes) % 2 else (slopes[mid - 1] + slopes[mid]) / 2
+    return {"changePerYear": round((math.exp(slope) - 1) * 100, 1)}
 
 
 def raw_change(species_key: str, start: int, end: int) -> dict:
@@ -123,8 +141,8 @@ def raw_change(species_key: str, start: int, end: int) -> dict:
             "startCount": n[i],
             "endCount": n[j],
             "change": n[j] - n[i],
-            "changePct": _change_pct(n[i], n[j]),
-            "allBirdsChangePct": _change_pct(all_birds[i]["records"], all_birds[j]["records"]),
+            "changePct": change_pct(n[i], n[j]),
+            "allBirdsChangePct": change_pct(all_birds[i]["records"], all_birds[j]["records"]),
         })
     return {"key": species_key, "name": find_species(species_key)["commonName"], "dataPoints": points}
 
@@ -137,7 +155,7 @@ def same_direction(other: dict | None, trend: dict | None) -> bool | None:
 
 
 def detail(species_key: str, region_id: str) -> dict:
-    """Trend, checks, effort and climate for one species-region."""
+    """Trend in raw sightings, checks, effort and climate for one species-region."""
     entry = trends(species_key)[region_id]
     trend = entry["trend"]
 
@@ -148,7 +166,7 @@ def detail(species_key: str, region_id: str) -> dict:
         "species": species_key,
         "region": region_id,
         "trend": trend,
-        "rawTrend": entry["rawTrend"],
+        "allBirdsTrend": all_birds_trend(region_id),
         "sufficiency": entry["sufficiency"],
         "secondSource": with_agreement(entry.get("secondSource")),
         "survey": with_agreement(survey(species_key, region_id)),

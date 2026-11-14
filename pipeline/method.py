@@ -1,10 +1,13 @@
-"""The method from the spec's Science section, shared by the real pipeline and the mock data.
+"""The method, shared by the real pipeline and the mock data.
 
-1. Corrected index: a species' share of all bird records in a state and year,
-   scaled so the base years average 100. Growth in the number of birders cancels.
+Since Nov 14 the app shows raw sightings, so trends and anomalies are fitted to
+raw counts. The corrected index (a species' share of all bird records) is still
+written to series.json but no longer used for trends.
+
+1. Index: raw sightings, and the corrected share, scaled so the base years average 100.
 2. Sufficiency: a state-year counts only with enough all-bird and species
    records; a species-state gets a trend only when enough of its years pass.
-3. Trend: Theil-Sen slope of ln(index) against year, with a 95% interval.
+3. Trend: Theil-Sen slope of ln(sightings) against year, with a 95% interval.
 4. Anomalies: regional divergence, sudden change and strong trend, ranked by
    robust z-score.
 """
@@ -19,6 +22,9 @@ MIN_SPECIES = 30  # species records n a state-year needs
 MIN_SHARE_OF_YEARS = 0.7  # share of years that must pass before a trend is fitted
 GOOD_SHARE_OF_YEARS = 0.9  # at or above this, sufficiency is "good" rather than "limited"
 BASE_YEARS = 3
+# Sudden changes are not flagged in the first years. eBird coverage was thin and changing fast in
+# many states then, and the first points of a fitted line are the least certain.
+SUDDEN_CHANGE_SKIP_YEARS = 2
 
 
 def pct(log_slope: float) -> float:
@@ -76,11 +82,13 @@ def build_series(n: list[int] | None, n_all: list[int],
     }
 
 
-def fit_trend(series: dict, years: list[int], counts: list[int] | None = None) -> tuple[dict, dict | None]:
+def fit_trend(series: dict, years: list[int], counts: list[int] | None = None,
+              measure: str = "raw") -> tuple[dict, dict | None]:
     """The trends.json entry for one species-state, and the fit behind it (None when insufficient).
 
-    `counts` are the species' record counts per year; the anomaly rules use them to tell real
-    jumps from sampling noise. The entry's secondSource is left as None for the caller to fill.
+    `measure` is the series to fit: "raw" (sightings, used by the app) or "corrected". `counts`
+    are the species' record counts per year; the anomaly rules use them to tell real jumps from
+    sampling noise. The entry's secondSource is left as None for the caller to fill.
     """
     years_ok = series["status"].count("ok")
     share_ok = years_ok / len(years)
@@ -88,14 +96,13 @@ def fit_trend(series: dict, years: list[int], counts: list[int] | None = None) -
              else "limited" if share_ok >= MIN_SHARE_OF_YEARS else "insufficient")
     entry = {
         "trend": None,
-        "rawTrend": None,
         "sufficiency": {"label": label, "yearsOk": years_ok, "yearsTotal": len(years)},
         "secondSource": None,
     }
     if label == "insufficient":
         return entry, None
 
-    points = [(year, math.log(v)) for year, v in zip(years, series["corrected"]) if v is not None]
+    points = [(year, math.log(v)) for year, v in zip(years, series[measure]) if v is not None]
     slope, low, high = theil_sen(points)
     entry["trend"] = {
         "changePerYear": pct(slope),
@@ -103,22 +110,17 @@ def fit_trend(series: dict, years: list[int], counts: list[int] | None = None) -
         "high": pct(high),
         "class": classify(pct(low), pct(high)),
     }
-    raw_points = [(year, math.log(v)) for year, v in zip(years, series["raw"]) if v is not None]
-    entry["rawTrend"] = {"changePerYear": pct(theil_sen(raw_points)[0])}
-
     intercept = median(y - slope * x for x, y in points)
     residuals = [(x, y - intercept - slope * x) for x, y in points]
     return entry, {"slope": slope, "residuals": residuals, "counts": dict(zip(years, counts or []))}
 
 
-def corrected_slope(n: list[int], n_all: list[int], years: list[int],
-                    min_all: int, min_species: int, min_years: int) -> float | None:
-    """Percent change per year of the species' share of records, or None without enough years.
+def count_slope(counts: list[int], years: list[int], min_count: int, min_years: int) -> float | None:
+    """Percent change per year of a count (Theil-Sen on its log), or None without enough years.
 
-    Used for the second source, where only the slope is needed.
+    Only years with at least min_count are used. For the second source and the all-birds context.
     """
-    points = [(year, math.log(s / total)) for year, s, total in zip(years, n, n_all)
-              if total >= min_all and s >= min_species]
+    points = [(year, math.log(c)) for year, c in zip(years, counts) if c >= min_count]
     return pct(theil_sen(points)[0]) if len(points) >= min_years else None
 
 
@@ -179,6 +181,14 @@ def detect_anomalies(species: list[dict], regions: list[dict], trends: dict, fit
         # year's counting noise. Within one short series the spread is often tiny, and early years
         # have few records, so both would otherwise make ordinary noise look extreme.
         spread = sampling_spread([fit for (k, _), fit in fits.items() if k == key])
+        # A jump that shows up in most states in the same year (eBird's surges in users, such as
+        # 2012 and 2020) is about birders, not birds, so each year's median jump is taken out first.
+        by_year: dict[int, list[float]] = {}
+        for (k, _), fit in fits.items():
+            if k == key:
+                for year, r in fit["residuals"]:
+                    by_year.setdefault(year, []).append(r)
+        year_effect = {year: median(rs) for year, rs in by_year.items()}
         for region_id, slope in slopes.items():
             bird, place = species_name[key], region_name[region_id]
             trend = trends[key][region_id]["trend"]
@@ -186,14 +196,18 @@ def detect_anomalies(species: list[dict], regions: list[dict], trends: dict, fit
             span = [years[0], years[-1]]
 
             # A species-state gets one trend item: whichever of the two rules is stronger.
+            # Strong trend: unusual among every species and state, since raw sightings of almost
+            # everything grow with the number of birders. Regional divergence: unusual for this species.
             options = []
-            if abs(trend["changePerYear"]) > 5 and trend["class"] in ("increasing", "decreasing"):
-                headline = f"{bird} is {'rising' if rising else 'falling'} fast in {place}"
-                options.append(("strong_trend", robust_z(slope, all_slopes), "up" if rising else "down", headline))
+            z = robust_z(slope, all_slopes)
+            if abs(z) > 3 and trend["class"] in ("increasing", "decreasing"):
+                headline = f"{bird} sightings are {'rising' if rising else 'falling'} unusually fast in {place}"
+                options.append(("strong_trend", z, "up" if rising else "down", headline))
             z = robust_z(slope, list(slopes.values()))
             if len(slopes) >= 8 and abs(z) > 3:
                 pace = "faster" if (z > 0) == rising else "more slowly"
-                headline = f"{bird} is {'rising' if rising else 'falling'} {pace} in {place} than nationally"
+                headline = (f"{bird} sightings are {'rising' if rising else 'falling'} {pace} "
+                            f"in {place} than in other states")
                 options.append(("regional_divergence", z, "up" if z > 0 else "down", headline))
             if options:
                 kind, z, direction, headline = max(options, key=lambda o: abs(o[1]))
@@ -204,6 +218,9 @@ def detect_anomalies(species: list[dict], regions: list[dict], trends: dict, fit
             runs: list[list[tuple[int, float]]] = []
             fit = fits[key, region_id]
             for year, residual in fit["residuals"]:
+                if year < years[0] + SUDDEN_CHANGE_SKIP_YEARS:
+                    continue
+                residual -= year_effect[year]
                 z = year_z(residual, fit["counts"].get(year), spread)
                 if abs(z) <= 3 or abs(residual) <= 0.2:
                     continue
@@ -218,7 +235,7 @@ def detect_anomalies(species: list[dict], regions: list[dict], trends: dict, fit
                 z = max((z for _, z in run), key=abs)
                 verb = "jumped" if z > 0 else "dropped"
                 when = f"in {first}" if first == last else f"from {first} to {last}"
-                headline = f"{bird} {verb} sharply in {place} {when}"
+                headline = f"{bird} sightings {verb} sharply in {place} {when}"
                 add("sudden_change", key, region_id, z, [first, last], "up" if z > 0 else "down", headline)
 
     found.sort(key=lambda a: (-a["score"], a["species"], a["region"]))

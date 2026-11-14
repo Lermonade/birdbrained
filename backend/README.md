@@ -2,7 +2,7 @@
 
 A FastAPI server for the API contract in the master spec. It serves the real data in `data/out/` (eBird and iNaturalist through GBIF, 2010 to 2025), falls back to mock data for any file that is missing, and `/api/ask` runs the Gemini analyst.
 
-As of Nov 14 the app shows raw sighting counts only; see the decision note at the top of the spec. The corrected index is still computed but not displayed.
+As of Nov 14 the app shows raw sighting counts only; see the decision note at the top of the spec. Trends, anomalies and the analyst all work on raw sightings. The corrected index is still written to `series.json` but nothing uses it.
 
 ## Run it
 
@@ -59,7 +59,7 @@ For each file, the server reads `data/out/<file>` if it exists and `data/mock/<f
 | File | Shape |
 | --- | --- |
 | `series.json` | `{species: {species, years, baseYears, regions: {regionId: {raw[], corrected[], status[]}}}}` |
-| `trends.json` | `{species: {regionId: {trend: {changePerYear, low, high, class}, rawTrend: {changePerYear}, sufficiency: {label, yearsOk, yearsTotal}, secondSource: {changePerYear}}}}` |
+| `trends.json` | `{species: {regionId: {trend: {changePerYear, low, high, class}, sufficiency: {label, yearsOk, yearsTotal}, secondSource: {changePerYear}}}}`. `trend` is the trend in raw eBird sightings; `secondSource` is the trend in iNaturalist sightings from 2015. |
 | `anomalies.json` | The `/api/anomalies` list, best first |
 | `effort.json` | `{regionId: [{year, records, recordsPer1000Km2}]}` |
 | `climate.json` | `{regionId: [{year, tempC, rainMm}]}`. Real: May to July mean temperature and total rainfall, 2010 to 2026, from NOAA's statewide averages (nClimDiv). DC uses Maryland's. |
@@ -71,11 +71,13 @@ For each file, the server reads `data/out/<file>` if it exists and `data/mock/<f
 These are what the server does today. Tell the team before changing them.
 
 - `sufficiency.label` is `good` (at least 90% of years pass), `limited` (at least 70%) or `insufficient`.
-- When a species-region is `insufficient`, `trend` and `rawTrend` are `null` in `/api/detail`, and the series values for failing years are `null`.
+- When a species-region is `insufficient`, `trend` is `null` in `/api/detail`, and the series values for failing years are `null`.
+- `/api/detail` returns `allBirdsTrend` (the trend in sightings of all birds in that state, the "more birders" baseline) in place of the spec's `rawTrend`, since `trend` is now itself raw.
 - `agrees` on `secondSource` and `survey` means the same direction as our trend. The server works it out; the data files don't store it.
 - `limit` on `/api/anomalies` goes up to 30.
 - Bad or missing parameters return 400 with the code `bad_request`. Unknown species or regions return 404 with `not_found`.
-- `POST /api/ask` accepts an optional `year` next to `question`, `species` and `region`.
+- `POST /api/ask` accepts optional `year`, `start` and `end` next to `question`, `species` and `region`. Send the same `start` and `end` as `/api/grab_data`.
+- Anomaly rules on raw sightings: *regional divergence* is a state whose sightings trend is more than 3 robust z-scores from the species' other states; *strong trend* is one more than 3 robust z-scores from every species-state; *sudden change* is a year (or run of years) that departs from the state's trend by more than 20% and 3 z-scores, after removing that year's nationwide jump (eBird's user surges) and allowing for counting noise. The first two years are not checked for sudden changes. Headlines say "sightings".
 - `GET /api/grab_data`: `species` defaults to all, `start` and `end` to the full year range. States with no records of the species in either year are left out. `changePct` is null when `startCount` is 0. `allBirdsChangePct` is the change in sightings of all birds in that state, for context.
 - `POST /api/ask` also returns `model`: the Gemini model that answered, or `null` when no model was needed.
 - When the analyst can't answer, `POST /api/ask` returns 503 with the code `analyst_unavailable`. The frontend should show a "try again" state.

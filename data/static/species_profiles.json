@@ -1,0 +1,67 @@
+{
+  "_note": "Draft written from general knowledge for the analyst's get_species_profile tool. The Product lead should check it before the demo.",
+  "eurasian_collared_dove": {
+    "habitat": "Towns, suburbs and farmland with scattered trees",
+    "diet": "Seeds and grain, often at bird feeders, livestock yards and grain elevators",
+    "migration": "Non-migratory. Spreads by young birds dispersing, often north and west",
+    "nesting": "Platform nests in trees and on buildings; several broods a year",
+    "knownThreats": ["None major; it is an introduced species in North America"],
+    "notes": "Introduced to the Bahamas in the 1970s, reached Florida in the 1980s and spread across most of the US since."
+  },
+  "chimney_swift": {
+    "habitat": "Towns and cities; feeds high in open sky",
+    "diet": "Flying insects caught on the wing",
+    "migration": "Long-distance migrant; winters in the upper Amazon basin of South America",
+    "nesting": "Nests and roosts in chimneys, formerly in hollow trees",
+    "knownThreats": ["Loss of open chimneys that are capped or demolished", "Fewer flying insects, including from pesticides", "Storms during migration"],
+    "notes": "Listed as Vulnerable by the IUCN after long declines."
+  },
+  "western_meadowlark": {
+    "habitat": "Grasslands, prairies, pastures and hayfields",
+    "diet": "Insects such as grasshoppers and beetles in summer; seeds in winter",
+    "migration": "Short-distance; northern birds move south for the winter",
+    "nesting": "Ground nest hidden in grass",
+    "knownThreats": ["Grassland converted to cropland", "Early hay mowing that destroys nests", "Pesticides that reduce insect food"],
+    "notes": "State bird of Nebraska and five other states."
+  },
+  "eastern_meadowlark": {
+    "habitat": "Grasslands, hayfields and pastures in the east",
+    "diet": "Insects in summer; seeds in winter",
+    "migration": "Short-distance; northern birds move south for the winter",
+    "nesting": "Ground nest hidden in grass",
+    "knownThreats": ["Loss of grassland to development and to forest regrowth on old farms", "Early hay mowing that destroys nests"],
+    "notes": "Listed as Near Threatened by the IUCN."
+  },
+  "wood_thrush": {
+    "habitat": "Mature deciduous and mixed forest with a shrub layer",
+    "diet": "Insects and other invertebrates from leaf litter; fruit in late summer",
+    "migration": "Long-distance migrant; winters in Central America",
+    "nesting": "Cup nest in a shrub or small tree",
+    "knownThreats": ["Forest broken into small patches, which raises nest predation and cowbird parasitism", "Loss of wintering forest in Central America"],
+    "notes": "Listed as Near Threatened by the IUCN."
+  },
+  "bald_eagle": {
+    "habitat": "Near large lakes, rivers and coasts with tall trees",
+    "diet": "Mostly fish; also waterbirds and carrion",
+    "migration": "Partial migrant; northern birds move to open water in winter",
+    "nesting": "Very large stick nest in a tall tree, reused for years",
+    "knownThreats": ["Lead poisoning from ammunition and fishing tackle", "Collisions with vehicles and power lines"],
+    "notes": "Recovered after the 1972 US ban on DDT and legal protection; removed from the endangered species list in 2007."
+  },
+  "carolina_wren": {
+    "habitat": "Dense undergrowth in woods, thickets and suburban gardens",
+    "diet": "Insects and spiders",
+    "migration": "Non-migratory resident",
+    "nesting": "Nests in cavities and nooks, including in buildings",
+    "knownThreats": ["Severe winters, which cause large die-offs at the northern edge of its range"],
+    "notes": "Its range has moved north, linked to milder winters and bird feeders."
+  },
+  "black_vulture": {
+    "habitat": "Open country and forest edges, often near roads and towns",
+    "diet": "Carrion; occasionally newborn livestock",
+    "migration": "Mostly resident",
+    "nesting": "Lays eggs on the ground in caves, hollow logs or abandoned buildings",
+    "knownThreats": ["Conflict with livestock farmers"],
+    "notes": "Its range has expanded north over recent decades."
+  }
+}

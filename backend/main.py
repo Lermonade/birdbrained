@@ -57,6 +57,11 @@ async def handle_validation_error(request: Request, exc: RequestValidationError)
     return error_response(400, "bad_request", "; ".join(problems))
 
 
+@app.exception_handler(analyst.AnalystUnavailable)
+async def handle_analyst_unavailable(request: Request, exc: analyst.AnalystUnavailable) -> JSONResponse:
+    return error_response(503, "analyst_unavailable", str(exc))
+
+
 @app.exception_handler(Exception)
 async def handle_unexpected_error(request: Request, exc: Exception) -> JSONResponse:
     return error_response(500, "internal_error", "Something went wrong on the server.")
@@ -123,7 +128,9 @@ class AskRequest(BaseModel):
 
 @app.post("/api/ask")
 def ask(body: AskRequest) -> dict:
-    """Run the analyst on one question about a species in a region."""
+    """Run the analyst on one question about a species in a region. Takes about 5 to 30 seconds.
+
+    Returns 503 with the code analyst_unavailable when Gemini fails and no saved answer exists."""
     require_species(body.species)
     require_region(body.region)
     return analyst.ask(body.question, body.species, body.region, body.year)

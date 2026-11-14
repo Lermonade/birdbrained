@@ -1,15 +1,21 @@
 import { NavLink, useLocation } from "react-router";
 import styles from "./navbar.module.css";
 
+import logo from "../../assets/birdbrained_logo.png";
+
 export default function Navbar() {
   const location = useLocation();
-
   const hasBackground = location.pathname === "/dashboard";
 
   return (
     <nav className={`${styles.navbar} ${hasBackground ? styles.withBackground : ""}`}>
       <NavLink to="/" className={styles.logo}>
-        BirdBrained
+        <img
+          src={logo}
+          alt="BirdBrained logo"
+          className={styles.logoImage}
+        />
+        <span>BirdBrained</span>
       </NavLink>
 
       <div className={styles.navLinks}>

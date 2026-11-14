@@ -36,7 +36,7 @@ The frontend can call `http://localhost:8000` from any localhost port. For the d
 | --- | --- |
 | `data/static/` | `species.json` and `regions.json`: real reference data; the GBIF species keys and GADM region ids were checked against the GBIF API. `species_profiles.json`: a hand-written draft for the analyst, to be checked by the Product lead. |
 | `data/mock/` | Simulated pipeline outputs, written by `python backend/make_mock_data.py`. |
-| `data/out/` | Real pipeline outputs. Empty until the pipeline runs. |
+| `data/out/` | Real pipeline outputs. So far only `climate.json`, written by `python pipeline/fetch_climate.py`. |
 
 For each file, the server reads `data/out/<file>` if it exists and `data/mock/<file>` otherwise. So the pipeline only has to write a file to `data/out/` in the shape below, and a server restart switches that file to real data.
 
@@ -46,7 +46,7 @@ For each file, the server reads `data/out/<file>` if it exists and `data/mock/<f
 | `trends.json` | `{species: {regionId: {trend: {changePerYear, low, high, class}, rawTrend: {changePerYear}, sufficiency: {label, yearsOk, yearsTotal}, secondSource: {changePerYear}}}}` |
 | `anomalies.json` | The `/api/anomalies` list, best first |
 | `effort.json` | `{regionId: [{year, records, recordsPer1000Km2}]}` |
-| `climate.json` | `{regionId: [{year, tempC, rainMm}]}` |
+| `climate.json` | `{regionId: [{year, tempC, rainMm}]}`. Real: May to July mean temperature and total rainfall, 2010 to 2026, from NOAA's statewide averages (nClimDiv). DC uses Maryland's. |
 | `bbs.json` | `{species: {regionId: {changePerYear, period}}}` |
 | `counts.json` | `{species: {regionId: [species record count per series year] or null}}`, the eBird `n` from `counts.parquet`. The analyst's `check_sampling` tool reads it. |
 

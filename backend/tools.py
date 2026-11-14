@@ -125,7 +125,8 @@ def get_climate(region: str) -> dict:
         "years": rows,
         "tempTrendCPerDecade": None if temp_slope is None else round(temp_slope * 10, 2),
         "rainTrendMmPerDecade": None if rain_slope is None else round(rain_slope * 10, 1),
-        "note": "Weather is for one point or one average per state, so it is coarse.",
+        "note": "Statewide averages from NOAA nClimDiv; the District of Columbia uses Maryland's."
+        if store.data_sources()["climate.json"] == "real" else "Simulated values for testing.",
     }
 
 

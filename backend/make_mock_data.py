@@ -308,14 +308,15 @@ def main() -> None:
     assert {s["key"] for s in species} == set(SPECIES), "species.json and SPECIES disagree"
 
     n_all = simulate_effort(regions)
-    series, trends, bbs, fits = {}, {}, {}, {}
+    series, trends, bbs, fits, counts = {}, {}, {}, {}, {}
     for s in species:
         key = s["key"]
         series[key] = {"species": key, "years": YEARS, "baseYears": YEARS[:3], "regions": {}}
-        trends[key], bbs[key] = {}, {}
+        trends[key], bbs[key], counts[key] = {}, {}, {}
         for region in regions:
             rid = region["id"]
-            region_series = build_series(simulate_counts(key, region, n_all[rid]), n_all[rid])
+            counts[key][rid] = simulate_counts(key, region, n_all[rid])
+            region_series = build_series(counts[key][rid], n_all[rid])
             series[key]["regions"][rid] = region_series
             trends[key][rid], fit = build_trend(key, rid, region_series)
             if fit is None:
@@ -342,6 +343,7 @@ def main() -> None:
     write("effort.json", effort)
     write("climate.json", simulate_climate(regions))
     write("bbs.json", bbs)
+    write("counts.json", counts)
 
     print(f"{len(fits)} species-regions with a trend, {len(anomalies)} anomalies kept")
     for anomaly in anomalies[:10]:

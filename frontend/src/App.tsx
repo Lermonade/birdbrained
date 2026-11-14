@@ -6,7 +6,7 @@ import Templates from "./pages/templates/Templates";
 import About from "./pages/about/About";
 import NotFound from "./pages/not_found/NotFound";
 
-import Navbar from "./components/Navbar";
+import Navbar from "./components/navbar/Navbar";
 
 function App() {
   return (

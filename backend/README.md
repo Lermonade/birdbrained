@@ -60,3 +60,15 @@ These are what the server does today. Tell the team before changing them.
 - Bad or missing parameters return 400 with the code `bad_request`. Unknown species or regions return 404 with `not_found`.
 - `POST /api/ask` accepts an optional `year` next to `question`, `species` and `region`.
 - The mock analyst waits 1 second before answering, so loading states are visible. Set `MOCK_ASK_DELAY_S=0` to turn that off.
+
+## Gemini
+
+Put your key in `backend/.env` (git ignores this file):
+
+```
+GEMINI_API_KEY=your-key
+```
+
+`python check_gemini.py` then tests each Flash model with one real tool call and says which ones work right now. Run it before a demo. `/api/ask` does not use Gemini yet.
+
+Note from Nov 14, about 1:30 AM: Google's main Flash models (`gemini-3.8-flash`, `gemini-3.7-flash`) were returning "high demand" errors, and only `gemini-3.5-flash-lite` answered reliably. This may have cleared since, so rerun the check before choosing the analyst's model.

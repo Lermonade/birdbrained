@@ -11,7 +11,7 @@
 .logo {
   font-size: 1.5rem;
   font-weight: 800;
-  color: #1e293b;
+  color: var;
   text-decoration: none;
   letter-spacing: -0.5px;
 }
@@ -24,18 +24,18 @@
 
 .navLink {
   text-decoration: none;
-  color: #64748b;
+  color: var(--text);
   font-size: 0.95rem;
   font-weight: 500;
   transition: color 0.2s ease;
 }
 
 .navLink:hover {
-  color: var(--text-accent);
+  color: var(--accent);
 }
 
 .navLink:global(.active) {
-  color: var(--text-accent);
+  color: var(--accent);
   font-weight: 700;
 }
 

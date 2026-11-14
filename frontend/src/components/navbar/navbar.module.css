@@ -74,6 +74,7 @@
 
 .withBackground {
   background-color: var(--bg);
+  border-bottom: 2px solid #000;
 }
 
 /* Mobile */

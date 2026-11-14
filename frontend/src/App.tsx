@@ -6,9 +6,13 @@ import Templates from "./pages/templates/Templates";
 import About from "./pages/about/About";
 import NotFound from "./pages/not_found/NotFound";
 
+import Navbar from "./components/Navbar";
+
 function App() {
   return (
     <BrowserRouter>
+      <Navbar />
+
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/dashboard" element={<Dashboard />} />

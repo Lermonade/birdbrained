@@ -84,48 +84,6 @@
   transform: translateY(var(--globe-y, 110%)) scale(var(--globe-scale, 1));
 }
 
-/* Legend over the globe */
-.legend {
-  position: absolute;
-  left: 16px;
-  bottom: 16px;
-  z-index: 2;
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
-  max-width: calc(100% - 32px);
-  padding: 0.7rem 0.9rem;
-  border-radius: 8px;
-  background: rgba(0, 0, 17, 0.72);
-  color: #ffffff;
-  font-size: 0.85rem;
-  line-height: 1.4;
-  pointer-events: none;
-}
-
-.legendMode,
-.legendNote {
-  opacity: 0.8;
-  font-size: 0.8rem;
-}
-
-.legendRow {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-}
-
-.swatch {
-  display: inline-block;
-  width: 12px;
-  height: 12px;
-  border-radius: 3px;
-}
-
-.swatch:not(:first-child) {
-  margin-left: 0.6rem;
-}
-
 /* Loading and errors */
 .status {
   position: absolute;

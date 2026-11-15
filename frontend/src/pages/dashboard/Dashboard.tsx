@@ -17,13 +17,12 @@ import type { Scene } from "../../components/landing/timeline";
 import { api, API_BASE } from "../../api/client";
 import type { GrabData, Region, Species } from "../../api/client";
 import { ContextProvider, useContextSettings } from "../../context/Context";
-import { DOWN_COLOR, UP_COLOR, toDatasets, type Mode } from "./globeData";
+import { parsePointId, toDatasets, type SpeciesSightings } from "./globeData";
 
 import styles from "./dashboard.module.css";
 
 // The species the globe starts on, and what it shows on the landing
 const DEFAULT_SPECIES = "chimney_swift";
-const MODE: Mode = "corrected";
 
 const US_VIEW: GlobeView = { lat: 39.5, lng: -98.5, altitude: 1.7 };
 const STATE_ALTITUDE = 1.1;
@@ -75,7 +74,8 @@ function DashboardContent() {
   const [grabs, setGrabs] = useState<Record<string, GrabData>>({});
   const [error, setError] = useState<string | null>(null);
 
-  const [selectedRegion, setSelectedRegion] = useState<string | null>(null);
+  // The state clicked on the globe, and the species whose pillar or point it was
+  const [selected, setSelected] = useState<{ speciesKey: string; region: string } | null>(null);
   const [focus, setFocus] = useState<GlobeView>(US_VIEW);
 
   // The pillars come up when the landing's bird reaches the globe, and go again
@@ -92,7 +92,7 @@ function DashboardContent() {
   if (intro !== wasIntro) {
     setWasIntro(intro);
     if (intro) {
-      setSelectedRegion(null);
+      setSelected(null);
       setFocus(US_VIEW);
     }
   }
@@ -135,51 +135,53 @@ function DashboardContent() {
     };
   }, [updateSpeciesList, addSelectedSpecies]);
 
-  // The globe shows the species picked most recently in the sidebar
-  const latestId = selectedSpeciesIds[selectedSpeciesIds.length - 1];
-  const isPlaceholder = latestId !== undefined && latestId <= PLACEHOLDER_SPECIES.length;
-  const speciesKey =
-    latestId === undefined || isPlaceholder
-      ? null
-      : (catalog[latestId - PLACEHOLDER_SPECIES.length - 1]?.key ?? null);
-  const grab = speciesKey ? grabs[speciesKey] : undefined;
+  // The globe shows every species selected in the sidebar, each in its sidebar color.
+  // Sidebar ids count the placeholders first, then the backend's species in catalog order.
+  const datasets = useMemo(() => {
+    const real: SpeciesSightings[] = [];
+    const placeholders: DataSet[] = [];
 
-  // A placeholder bird draws Silas's sample points in its sidebar color
-  const placeholder = isPlaceholder ? allSpecies.find(s => s.id === latestId) : undefined;
-  const placeholderPoints = isPlaceholder
-    ? speciesData.find(d => d.speciesId === latestId)?.dataPoints
-    : undefined;
-  const placeholderDatasets = useMemo(
-    () =>
-      placeholder && placeholderPoints
-        ? [{ name: placeholder.name, color: placeholder.color, dataPoints: placeholderPoints }]
-        : NO_DATASETS,
-    [placeholder, placeholderPoints]
-  );
+    for (const id of selectedSpeciesIds) {
+      const species = allSpecies.find(s => s.id === id);
+      if (!species) continue;
 
+      if (id <= PLACEHOLDER_SPECIES.length) {
+        const points = speciesData.find(d => d.speciesId === id)?.dataPoints;
+        if (points) placeholders.push({ name: species.name, color: species.color, dataPoints: points });
+        continue;
+      }
+
+      const key = catalog[id - PLACEHOLDER_SPECIES.length - 1]?.key;
+      const points = key ? grabs[key]?.species[0]?.dataPoints : undefined;
+      if (key && points) real.push({ key, name: species.name, color: species.color, points });
+    }
+
+    const year = Object.values(grabs)[0]?.endYear;
+    return [...(year === undefined ? NO_DATASETS : toDatasets(real, year)), ...placeholders];
+  }, [selectedSpeciesIds, allSpecies, speciesData, catalog, grabs]);
+
+  const hasPlaceholder = selectedSpeciesIds.some(id => id <= PLACEHOLDER_SPECIES.length);
   const loading = catalog.length === 0 && error === null;
-  const start = grab?.startYear ?? null;
-  const end = grab?.endYear ?? null;
-
-  const shownSpecies = grab?.species[0];
-  const realDatasets = useMemo(
-    () =>
-      shownSpecies && start !== null && end !== null
-        ? toDatasets(shownSpecies.name, shownSpecies.dataPoints, MODE, start, end)
-        : NO_DATASETS,
-    [shownSpecies, start, end]
-  );
-  const datasets = isPlaceholder ? placeholderDatasets : realDatasets;
 
   const handlePointClick = useCallback((point: DataPoint) => {
     if (!point.id) return;
-    setSelectedRegion(point.id);
+    setSelected(parsePointId(point.id));
     setFocus({ lat: point.lat, lng: point.lng, altitude: STATE_ALTITUDE });
   }, []);
 
-  const selectedPoint = shownSpecies?.dataPoints.find(p => p.region === selectedRegion);
+  // The detail panel, while the clicked species is still selected
+  const selectedGrab = selected ? grabs[selected.speciesKey] : undefined;
+  const selectedSpeciesId = selected
+    ? catalog.findIndex(s => s.key === selected.speciesKey) + PLACEHOLDER_SPECIES.length + 1
+    : undefined;
+  const panelOpen =
+    selected !== null &&
+    selectedGrab !== undefined &&
+    selectedSpeciesId !== undefined &&
+    selectedSpeciesIds.includes(selectedSpeciesId);
+  const selectedPoint = selectedGrab?.species[0]?.dataPoints.find(p => p.region === selected?.region);
   const selectedRegionName =
-    regions.find(r => r.id === selectedRegion)?.name ?? selectedPoint?.name ?? "";
+    regions.find(r => r.id === selected?.region)?.name ?? selectedPoint?.name ?? "";
 
   // ------------------------------------------------
   // Sidebar resizing
@@ -285,21 +287,9 @@ function DashboardContent() {
             transparentBackground
           />
 
-          {!intro && shownSpecies && start !== null && end !== null && (
-            <div className={styles.legend}>
-              <strong>{shownSpecies.name}</strong>, {start} to {end}
-              <span className={styles.legendMode}>Share of all sightings (corrected)</span>
-              <span className={styles.legendRow}>
-                <span className={styles.swatch} style={{ background: UP_COLOR }} /> Up
-                <span className={styles.swatch} style={{ background: DOWN_COLOR }} /> Down
-              </span>
-              <span className={styles.legendNote}>Height: size of the change</span>
-            </div>
-          )}
+          {!intro && !hasPlaceholder && loading && <div className={styles.status}>Loading data...</div>}
 
-          {!intro && !isPlaceholder && loading && <div className={styles.status}>Loading data...</div>}
-
-          {!intro && !isPlaceholder && error && (
+          {!intro && !hasPlaceholder && error && (
             <div className={styles.errorCard} role="alert">
               <strong>Can't load the data.</strong>
               <p>{error}</p>
@@ -310,17 +300,17 @@ function DashboardContent() {
             </div>
           )}
 
-          {!intro && speciesKey && selectedRegion && start !== null && end !== null && (
+          {!intro && panelOpen && selected && selectedGrab && (
             <DetailPanel
-              key={`${speciesKey}|${selectedRegion}|${start}|${end}`}
-              speciesKey={speciesKey}
-              speciesName={shownSpecies?.name ?? speciesKey}
-              regionId={selectedRegion}
+              key={`${selected.speciesKey}|${selected.region}|${selectedGrab.startYear}|${selectedGrab.endYear}`}
+              speciesKey={selected.speciesKey}
+              speciesName={selectedGrab.species[0]?.name ?? selected.speciesKey}
+              regionId={selected.region}
               regionName={selectedRegionName}
               point={selectedPoint}
-              start={start}
-              end={end}
-              onClose={() => setSelectedRegion(null)}
+              start={selectedGrab.startYear}
+              end={selectedGrab.endYear}
+              onClose={() => setSelected(null)}
             />
           )}
         </section>

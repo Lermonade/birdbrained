@@ -18,7 +18,7 @@ import math
 from itertools import combinations
 from statistics import mean, median
 
-MIN_ALL_BIRDS = 20_000  # all-bird records N a state-year needs
+MIN_ALL_BIRDS = 5_000  # all-bird records N a state-year needs
 MIN_SPECIES = 30  # species records n a state-year needs
 MIN_SHARE_OF_YEARS = 0.7  # share of years that must pass before a trend is fitted
 GOOD_SHARE_OF_YEARS = 0.9  # at or above this, sufficiency is "good" rather than "limited"

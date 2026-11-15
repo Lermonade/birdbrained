@@ -46,7 +46,7 @@ The frontend can call `http://localhost:8000` from any localhost port. For the d
 From the repo root, with the backend's venv active (the scripts need only the Python standard library):
 
 ```bash
-python pipeline/fetch_gbif.py      # about 5 min: eBird and iNaturalist counts from GBIF -> data/out/raw_counts.json
+python pipeline/fetch_gbif.py      # about 15 min: eBird and iNaturalist counts from GBIF -> data/out/raw_counts.json
 python pipeline/compute.py         # seconds: series, trends, anomalies, effort, counts
 python pipeline/load_bbs.py        # seconds: Breeding Bird Survey trends -> bbs.json
 python pipeline/fetch_climate.py   # seconds: NOAA statewide climate -> climate.json

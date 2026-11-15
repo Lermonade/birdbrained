@@ -40,6 +40,6 @@ The data is already in the repo (`data/out/`), so nothing is downloaded at start
 ## Limits
 
 - The map shows each bird's share of all sightings, corrected for the growth in birders (eBird records of all birds grew about 10x from 2010 to 2025). It is a relative trend, not a head count, and it shifts if birders change what they report. States where the trend is not statistically clear are flagged.
-- 100 species (our original 8 plus the most-reported birds of each continent) in 240 states and provinces across 42 countries, wherever eBird has enough records. Each place uses its own breeding season: May to July in the north, October to December in the south.
+- 160 species (our original 8, the most-reported birds of each continent and the 30 most-reported owls) in 600 states and provinces across 84 countries, wherever eBird has enough records. Owls are reported far less than songbirds, so outside North America most owls show sightings but too few records for a trend. Each place uses its own breeding season: May to July in the north, October to December in the south.
 - Climate data (NOAA) and the Breeding Bird Survey cover only the US (and Canada for the survey); elsewhere the analyst has less evidence.
 - The analyst's causes are hypotheses, each with its evidence and a confidence level.

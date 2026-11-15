@@ -8,8 +8,6 @@ import {
   type ReactNode,
 } from "react";
 
-import type { DataPoint } from "../components/globe_visualization/GlobeVisualization";
-
 import {
   VisualizationType,
   EarthType,
@@ -33,11 +31,6 @@ export interface BirdSpecies {
   color: string;
 }
 
-export interface SpeciesData {
-  speciesId: number;
-  dataPoints: DataPoint[];
-}
-
 interface SpeciesInput {
   name: string;
   sightings: number;
@@ -56,7 +49,7 @@ interface ContextType {
   setEarthDisplayType: (value: EarthType) => void;
   updateFilters: (filters: FilterSettings) => void;
 
-  // Database 1: Species catalogue
+  // Backend species catalogue
   allSpecies: BirdSpecies[];
   updateSpeciesList: (species: SpeciesInput[]) => void;
   updateSpeciesColor: (id: number, color: string) => void;
@@ -66,12 +59,6 @@ interface ContextType {
   selectedSpecies: BirdSpecies[];
   addSelectedSpecies: (id: number) => Promise<void>;
   removeSelectedSpecies: (id: number) => void;
-
-  // Database 2: Geographic data
-  speciesData: SpeciesData[];
-  loadingSpeciesIds: number[];
-  getSpeciesData: (id: number) => Promise<void>;
-  removeSpeciesData: (id: number) => void;
 }
 
 // --------------------------------------------------
@@ -79,9 +66,7 @@ interface ContextType {
 // --------------------------------------------------
 
 const MAX_SELECTED_SPECIES = 10;
-const POINTS_PER_SPECIES = 2000;
 
-// Muted but distinguishable colors.
 const SPECIES_COLORS = [
   "#B66D6D",
   "#B58A50",
@@ -94,19 +79,6 @@ const SPECIES_COLORS = [
   "#559A95",
   "#A96F50",
 ];
-
-// --------------------------------------------------
-// Mock geographic data generation
-// --------------------------------------------------
-
-function generateDataPoints(count: number): DataPoint[] {
-  return Array.from({ length: count }, () => ({
-    lat: Math.random() * 160 - 80,
-    lng: Math.random() * 360 - 180,
-    height: 0,
-    population: 1,
-  }));
-}
 
 // --------------------------------------------------
 // Initial filters
@@ -190,7 +162,7 @@ export function ContextProvider({
   });
 
   // ------------------------------------------------
-  // Database 1: Species catalogue
+  // Backend species catalogue
   // ------------------------------------------------
 
   const [allSpecies, setAllSpecies] = useState<BirdSpecies[]>([]);
@@ -203,8 +175,7 @@ export function ContextProvider({
         id: index + 1,
         name: item.name,
         sightings: item.sightings,
-        color:
-          SPECIES_COLORS[index % SPECIES_COLORS.length],
+        color: SPECIES_COLORS[index % SPECIES_COLORS.length],
       }));
 
       allSpeciesRef.current = updatedSpecies;
@@ -229,174 +200,12 @@ export function ContextProvider({
   );
 
   // ------------------------------------------------
-  // Database 2: Geographic data
-  // ------------------------------------------------
-
-  const [speciesData, setSpeciesDataState] =
-    useState<SpeciesData[]>([]);
-
-  const [loadingSpeciesIds, setLoadingSpeciesIds] =
-    useState<number[]>([]);
-
-  // Synchronous reference to geographic data.
-  const speciesDataRef = useRef<SpeciesData[]>([]);
-
-  // Tracks currently running requests.
-  const inFlightRequestsRef = useRef(
-    new Map<number, Promise<void>>()
-  );
-
-  // Identifies the latest request for each species.
-  const requestVersionsRef = useRef(
-    new Map<number, number>()
-  );
-
-  // Synchronously update the geographic database.
-  const commitSpeciesData = useCallback(
-    (updater: (current: SpeciesData[]) => SpeciesData[]) => {
-      const updated = updater(speciesDataRef.current);
-
-      speciesDataRef.current = updated;
-      setSpeciesDataState(updated);
-    },
-    []
-  );
-
-  // ------------------------------------------------
-  // Fetch species geographic data
-  // ------------------------------------------------
-
-  const getSpeciesData = useCallback(
-    (id: number): Promise<void> => {
-      // Only fetch data for currently selected species.
-      if (!selectedSpeciesIdsRef.current.includes(id)) {
-        return Promise.resolve();
-      }
-
-      // Already loaded.
-      if (
-        speciesDataRef.current.some(
-          item => item.speciesId === id
-        )
-      ) {
-        return Promise.resolve();
-      }
-
-      // Request already running.
-      const existingRequest =
-        inFlightRequestsRef.current.get(id);
-
-      if (existingRequest) {
-        return existingRequest;
-      }
-
-      // Create a new request version.
-      const version =
-        (requestVersionsRef.current.get(id) ?? 0) + 1;
-
-      requestVersionsRef.current.set(id, version);
-
-      setLoadingSpeciesIds(current =>
-        current.includes(id)
-          ? current
-          : [...current, id]
-      );
-
-      // TODO: Replace mock generation with backend request.
-      const request = Promise.resolve().then(async () => {
-        try {
-          const generatedData = generateDataPoints(
-            POINTS_PER_SPECIES
-          );
-
-          // Ignore results from outdated requests.
-          if (
-            requestVersionsRef.current.get(id) !== version
-          ) {
-            return;
-          }
-
-          // Ignore results if species was removed.
-          if (!selectedSpeciesIdsRef.current.includes(id)) {
-            return;
-          }
-
-          commitSpeciesData(current => {
-            if (
-              current.some(item => item.speciesId === id)
-            ) {
-              return current;
-            }
-
-            return [
-              ...current,
-              {
-                speciesId: id,
-                dataPoints: generatedData,
-              },
-            ];
-          });
-        } finally {
-          // Only clean up the current request.
-          if (
-            requestVersionsRef.current.get(id) === version
-          ) {
-            setLoadingSpeciesIds(current =>
-              current.filter(speciesId => speciesId !== id)
-            );
-
-            if (
-              inFlightRequestsRef.current.get(id) === request
-            ) {
-              inFlightRequestsRef.current.delete(id);
-            }
-          }
-        }
-      });
-
-      inFlightRequestsRef.current.set(id, request);
-
-      return request;
-    },
-    [commitSpeciesData]
-  );
-
-  // ------------------------------------------------
-  // Remove geographic data
-  // ------------------------------------------------
-
-  const removeSpeciesData = useCallback(
-    (id: number) => {
-      // Invalidate any outstanding request.
-      const nextVersion =
-        (requestVersionsRef.current.get(id) ?? 0) + 1;
-
-      requestVersionsRef.current.set(id, nextVersion);
-
-      // Remove request tracking.
-      inFlightRequestsRef.current.delete(id);
-
-      // Remove loading indicator.
-      setLoadingSpeciesIds(current =>
-        current.filter(speciesId => speciesId !== id)
-      );
-
-      // Remove stored geographic data.
-      commitSpeciesData(current =>
-        current.filter(item => item.speciesId !== id)
-      );
-    },
-    [commitSpeciesData]
-  );
-
-  // ------------------------------------------------
   // Selected species
   // ------------------------------------------------
 
   const [selectedSpeciesIds, setSelectedSpeciesIds] =
     useState<number[]>([]);
 
-  // Synchronous reference prevents stale-state selection.
   const selectedSpeciesIdsRef = useRef<number[]>([]);
 
   const selectedSpecies = allSpecies.filter(species =>
@@ -422,14 +231,13 @@ export function ContextProvider({
         return;
       }
 
-      // Ensure species exists in catalogue.
+      // Ensure species exists in backend catalogue.
       const speciesExists = allSpeciesRef.current.some(
         species => species.id === id
       );
 
       if (!speciesExists) return;
 
-      // Update selection synchronously.
       const updatedIds = [
         ...selectedSpeciesIdsRef.current,
         id,
@@ -437,11 +245,8 @@ export function ContextProvider({
 
       selectedSpeciesIdsRef.current = updatedIds;
       setSelectedSpeciesIds(updatedIds);
-
-      // Fetch geographic data.
-      await getSpeciesData(id);
     },
-    [getSpeciesData]
+    []
   );
 
   // ------------------------------------------------
@@ -457,11 +262,8 @@ export function ContextProvider({
 
       selectedSpeciesIdsRef.current = updatedIds;
       setSelectedSpeciesIds(updatedIds);
-
-      // Also remove associated geographic data.
-      removeSpeciesData(id);
     },
-    [removeSpeciesData]
+    []
   );
 
   // ------------------------------------------------
@@ -525,11 +327,6 @@ export function ContextProvider({
         selectedSpecies,
         addSelectedSpecies,
         removeSelectedSpecies,
-
-        speciesData,
-        loadingSpeciesIds,
-        getSpeciesData,
-        removeSpeciesData,
       }}
     >
       {children}

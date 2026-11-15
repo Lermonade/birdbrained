@@ -97,6 +97,10 @@
   color: var(--landing-ink, var(--bg));
 }
 
+.onLanding .logoImage {
+  filter: var(--landing-logo-filter, invert(1));
+}
+
 .onLanding .navLink:global(.active) {
   color: var(--landing-ink, #ffffff);
   text-decoration: underline;

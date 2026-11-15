@@ -60,7 +60,7 @@
   color: #ffffff;
   text-decoration: none;
   padding: 0.55rem 1.2rem;
-  border-radius: 8px;
+  border-radius: var(--border-radius);
   font-size: 0.95rem;
   font-weight: 600;
   transition: 0.05s ease-in;

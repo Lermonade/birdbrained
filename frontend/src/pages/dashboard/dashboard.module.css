@@ -13,10 +13,65 @@
   padding-top: 0;
 }
 
+/* Sidebar | resize handle | globe. On the landing there's only the globe;
+   Dashboard.tsx sets the columns while the sidebar is up. */
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+
+.workspace > aside {
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* Divider */
+.resizeHandle {
+  position: relative;
+  height: 100%;
+  background: var(--bg);
+  cursor: col-resize;
+  touch-action: none;
+  transition: background-color 0.15s ease;
+  z-index: 2;
+}
+
+/* Larger invisible hit area */
+.resizeHandle::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -5px;
+  right: -5px;
+}
+
+.resizeHandle:hover,
+.resizeHandle:focus-visible {
+  background-color: var(--accent);
+  outline: none;
+}
+
+/* Disable text selection while dragging */
+.dragging {
+  cursor: col-resize;
+  user-select: none;
+}
+
+.dragging * {
+  cursor: col-resize !important;
+  user-select: none !important;
+}
+
 /* Globe viewport. The landing slides, scales and fades it through these variables
    as you scroll; on the dashboard they're unset and it sits still. */
 .visualization {
   position: relative;
+  min-width: 0;
+  min-height: 0;
   width: 100%;
   height: 100%;
   overflow: hidden;

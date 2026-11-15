@@ -1,4 +1,12 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+} from "react";
+
 import { useLocation, useNavigate } from "react-router";
 
 import GlobeVisualization, {
@@ -12,19 +20,39 @@ import GlobeVisualization, {
 import DashboardSidebar from "../../components/sidebar/Sidebar";
 import DetailPanel from "../../components/detail_panel/DetailPanel";
 import Landing from "../../components/landing/Landing";
+
 import type { Scene } from "../../components/landing/timeline";
+
 import { api, API_BASE } from "../../api/client";
 import type { GrabData, Region, Species } from "../../api/client";
-import { ContextProvider, useContextSettings } from "../../context/Context";
+
+import {
+  ContextProvider,
+  useContextSettings,
+} from "../../context/Context";
+
 import { useLook } from "../../looks";
-import { parsePointId, toDatasets, type SpeciesSightings } from "./globeData";
+
+import {
+  parsePointId,
+  toDatasets,
+  type SpeciesSightings,
+} from "./globeData";
 
 import styles from "./dashboard.module.css";
 
-// The species the globe starts on, and what it shows on the landing
+// --------------------------------------------------
+// Configuration
+// --------------------------------------------------
+
 const DEFAULT_SPECIES = "chimney_swift";
 
-const US_VIEW: GlobeView = { lat: 39.5, lng: -98.5, altitude: 1.7 };
+const US_VIEW: GlobeView = {
+  lat: 39.5,
+  lng: -98.5,
+  altitude: 1.7,
+};
+
 const STATE_ALTITUDE = 1.1;
 
 const MIN_SIDEBAR_WIDTH = 220;
@@ -33,168 +61,272 @@ const DEFAULT_SIDEBAR_WIDTH = 320;
 
 const NO_DATASETS: DataSet[] = [];
 
-// Silas's placeholder birds. They're always in the sidebar's species search, even
-// without the backend, and show sample points on the globe. The real species follow them.
-const PLACEHOLDER_SPECIES = [
-  { name: "Robin", sightings: 1248 },
-  { name: "Kingfisher", sightings: 856 },
-  { name: "Bluebird", sightings: 634 },
-  { name: "Barn Owl", sightings: 921 },
-  { name: "Goldfinch", sightings: 1450 },
-  { name: "Woodpecker", sightings: 782 },
-  { name: "Blackbird", sightings: 1102 },
-  { name: "Sparrow", sightings: 1875 },
-  { name: "Hummingbird", sightings: 542 },
-  { name: "Eagle", sightings: 318 },
-];
+// --------------------------------------------------
+// Helpers
+// --------------------------------------------------
 
-// Sightings across all states in the last year, for the sidebar's species list
 function sightings(grab: GrabData | undefined): number {
-  return grab?.species[0]?.dataPoints.reduce((sum, point) => sum + point.endCount, 0) ?? 0;
+  return (
+    grab?.species[0]?.dataPoints.reduce(
+      (sum, point) => sum + point.endCount,
+      0
+    ) ?? 0
+  );
 }
 
+// --------------------------------------------------
+// Dashboard content
+// --------------------------------------------------
+
 function DashboardContent() {
-  // "/" plays the landing over the globe; "/dashboard" is the globe with the sidebar
+  // ------------------------------------------------
+  // Navigation
+  // ------------------------------------------------
+
   const intro = useLocation().pathname === "/";
   const navigate = useNavigate();
   const look = useLook();
-  const enter = useCallback(() => navigate("/dashboard"), [navigate]);
+
+  const enter = useCallback(
+    () => navigate("/dashboard"),
+    [navigate]
+  );
+
+  // ------------------------------------------------
+  // Context
+  // ------------------------------------------------
 
   const {
     settings,
     allSpecies,
     selectedSpeciesIds,
-    speciesData,
     updateSpeciesList,
     addSelectedSpecies,
   } = useContextSettings();
 
+  // ------------------------------------------------
   // Backend data
+  // ------------------------------------------------
+
   const [regions, setRegions] = useState<Region[]>([]);
   const [catalog, setCatalog] = useState<Species[]>([]);
   const [grabs, setGrabs] = useState<Record<string, GrabData>>({});
+
   const [error, setError] = useState<string | null>(null);
 
-  // The state clicked on the globe, and the species whose pillar or point it was
-  const [selected, setSelected] = useState<{ speciesKey: string; region: string } | null>(null);
+  // The currently selected globe point, including its species.
+  const [selected, setSelected] = useState<{
+    speciesKey: string;
+    region: string;
+  } | null>(null);
+
   const [focus, setFocus] = useState<GlobeView>(US_VIEW);
 
-  // The pillars come up when the landing's bird reaches the globe, and go again
-  // if the scene is rewound. Loading the dashboard directly, they're up from the start.
+  // ------------------------------------------------
+  // Landing animation state
+  // ------------------------------------------------
+
   const [landed, setLanded] = useState(!intro);
 
-  // What the landing drives directly, without going through React
   const globe = useRef<GlobeHandle | null>(null);
   const globeFrame = useRef<HTMLElement | null>(null);
-  const scene = useRef<Scene>({ progress: intro ? 0 : 1 });
 
-  // Back on the landing: start it from a clean dashboard
+  const scene = useRef<Scene>({
+    progress: intro ? 0 : 1,
+  });
+
+  // Reset dashboard when returning to landing.
   const [wasIntro, setWasIntro] = useState(intro);
+
   if (intro !== wasIntro) {
     setWasIntro(intro);
+
     if (intro) {
       setSelected(null);
       setFocus(US_VIEW);
     }
   }
 
-  // States, species and each species' globe data, once.
-  // The sidebar numbers species 1, 2, 3... in list order: the placeholders first,
-  // so their numbers stay the same when the backend's species are added after them.
+  // ------------------------------------------------
+  // Fetch backend catalogue and geographic data
+  // ------------------------------------------------
+
   useEffect(() => {
     let cancelled = false;
 
-    updateSpeciesList(PLACEHOLDER_SPECIES);
+    async function loadBackendData() {
+      try {
+        setError(null);
 
-    Promise.all([api.regions(), api.species()])
-      .then(async ([regionsResult, speciesResult]) => {
-        const grabResults = await Promise.all(speciesResult.map(s => api.grabData(s.key)));
+        const [regionsResult, speciesResult] =
+          await Promise.all([
+            api.regions(),
+            api.species(),
+          ]);
+
+        if (cancelled) return;
+
+        // Fetch geographic data for every backend species.
+        const grabResults = await Promise.all(
+          speciesResult.map(species =>
+            api.grabData(species.key)
+          )
+        );
+
         if (cancelled) return;
 
         const byKey: Record<string, GrabData> = {};
-        speciesResult.forEach((s, i) => {
-          byKey[s.key] = grabResults[i];
+
+        speciesResult.forEach((species, index) => {
+          byKey[species.key] = grabResults[index];
         });
 
         setRegions(regionsResult);
         setCatalog(speciesResult);
         setGrabs(byKey);
 
-        updateSpeciesList([
-          ...PLACEHOLDER_SPECIES,
-          ...speciesResult.map(s => ({ name: s.commonName, sightings: sightings(byKey[s.key]) })),
-        ]);
-        const defaultIndex = speciesResult.findIndex(s => s.key === DEFAULT_SPECIES);
-        void addSelectedSpecies(PLACEHOLDER_SPECIES.length + (defaultIndex === -1 ? 0 : defaultIndex) + 1);
-      })
-      .catch((e: Error) => {
-        if (!cancelled) setError(e.message);
-      });
+        // The backend is the only source of species.
+        updateSpeciesList(
+          speciesResult.map(species => ({
+            name: species.commonName,
+            sightings: sightings(byKey[species.key]),
+          }))
+        );
+
+        // Automatically select the default species.
+        const defaultIndex = speciesResult.findIndex(
+          species => species.key === DEFAULT_SPECIES
+        );
+
+        if (defaultIndex !== -1) {
+          void addSelectedSpecies(defaultIndex + 1);
+        }
+      } catch (e) {
+        if (!cancelled) {
+          setError(
+            e instanceof Error
+              ? e.message
+              : "Failed to load backend data."
+          );
+        }
+      }
+    }
+
+    void loadBackendData();
 
     return () => {
       cancelled = true;
     };
   }, [updateSpeciesList, addSelectedSpecies]);
 
-  // The globe shows every species selected in the sidebar, each in its sidebar color.
-  // Sidebar ids count the placeholders first, then the backend's species in catalog order.
+  // ------------------------------------------------
+  // Build multi-species globe datasets
+  // ------------------------------------------------
+
   const datasets = useMemo(() => {
     const real: SpeciesSightings[] = [];
-    const placeholders: DataSet[] = [];
 
     for (const id of selectedSpeciesIds) {
-      const species = allSpecies.find(s => s.id === id);
+      const species = allSpecies.find(
+        item => item.id === id
+      );
+
       if (!species) continue;
 
-      if (id <= PLACEHOLDER_SPECIES.length) {
-        const points = speciesData.find(d => d.speciesId === id)?.dataPoints;
-        if (points) placeholders.push({ name: species.name, color: species.color, dataPoints: points });
-        continue;
-      }
+      // IDs correspond directly to backend catalogue order.
+      const key = catalog[id - 1]?.key;
 
-      const key = catalog[id - PLACEHOLDER_SPECIES.length - 1]?.key;
-      const points = key ? grabs[key]?.species[0]?.dataPoints : undefined;
-      if (key && points) real.push({ key, name: species.name, color: species.color, points });
+      if (!key) continue;
+
+      const points = grabs[key]?.species[0]?.dataPoints;
+
+      if (!points) continue;
+
+      real.push({
+        key,
+        name: species.name,
+        color: species.color,
+        points,
+      });
     }
 
     const year = Object.values(grabs)[0]?.endYear;
-    return [...(year === undefined ? NO_DATASETS : toDatasets(real, year)), ...placeholders];
-  }, [selectedSpeciesIds, allSpecies, speciesData, catalog, grabs]);
 
-  const hasPlaceholder = selectedSpeciesIds.some(id => id <= PLACEHOLDER_SPECIES.length);
-  const loading = catalog.length === 0 && error === null;
+    return year === undefined
+      ? NO_DATASETS
+      : toDatasets(real, year);
+  }, [
+    selectedSpeciesIds,
+    allSpecies,
+    catalog,
+    grabs,
+  ]);
 
-  const handlePointClick = useCallback((point: DataPoint) => {
-    if (!point.id) return;
-    setSelected(parsePointId(point.id));
-    setFocus({ lat: point.lat, lng: point.lng, altitude: STATE_ALTITUDE });
-  }, []);
+  // ------------------------------------------------
+  // Globe interaction
+  // ------------------------------------------------
 
-  // The detail panel, while the clicked species is still selected
-  const selectedGrab = selected ? grabs[selected.speciesKey] : undefined;
-  const selectedSpeciesId = selected
-    ? catalog.findIndex(s => s.key === selected.speciesKey) + PLACEHOLDER_SPECIES.length + 1
+  const handlePointClick = useCallback(
+    (point: DataPoint) => {
+      if (!point.id) return;
+
+      setSelected(parsePointId(point.id));
+
+      setFocus({
+        lat: point.lat,
+        lng: point.lng,
+        altitude: STATE_ALTITUDE,
+      });
+    },
+    []
+  );
+
+  // ------------------------------------------------
+  // Detail panel data
+  // ------------------------------------------------
+
+  const selectedGrab = selected
+    ? grabs[selected.speciesKey]
     : undefined;
+
+  const selectedSpeciesId = selected
+    ? catalog.findIndex(
+        species => species.key === selected.speciesKey
+      ) + 1
+    : undefined;
+
   const panelOpen =
     selected !== null &&
     selectedGrab !== undefined &&
     selectedSpeciesId !== undefined &&
     selectedSpeciesIds.includes(selectedSpeciesId);
-  const selectedPoint = selectedGrab?.species[0]?.dataPoints.find(p => p.region === selected?.region);
+
+  const selectedPoint = selectedGrab?.species[0]?.dataPoints.find(
+    point => point.region === selected?.region
+  );
+
   const selectedRegionName =
-    regions.find(r => r.id === selected?.region)?.name ?? selectedPoint?.name ?? "";
+    regions.find(
+      region => region.id === selected?.region
+    )?.name ??
+    selectedPoint?.name ??
+    "";
 
   // ------------------------------------------------
   // Sidebar resizing
   // ------------------------------------------------
 
-  const [sidebarWidth, setSidebarWidth] = useState(DEFAULT_SIDEBAR_WIDTH);
+  const [sidebarWidth, setSidebarWidth] =
+    useState(DEFAULT_SIDEBAR_WIDTH);
+
   const [isDragging, setIsDragging] = useState(false);
 
   const dragStartX = useRef(0);
   const dragStartWidth = useRef(sidebarWidth);
 
-  function handlePointerDown(e: React.PointerEvent<HTMLDivElement>) {
+  function handlePointerDown(
+    e: React.PointerEvent<HTMLDivElement>
+  ) {
     e.preventDefault();
 
     dragStartX.current = e.clientX;
@@ -210,7 +342,13 @@ function DashboardContent() {
       const delta = e.clientX - dragStartX.current;
 
       setSidebarWidth(
-        Math.min(MAX_SIDEBAR_WIDTH, Math.max(MIN_SIDEBAR_WIDTH, dragStartWidth.current + delta))
+        Math.min(
+          MAX_SIDEBAR_WIDTH,
+          Math.max(
+            MIN_SIDEBAR_WIDTH,
+            dragStartWidth.current + delta
+          )
+        )
       );
     }
 
@@ -218,26 +356,60 @@ function DashboardContent() {
       setIsDragging(false);
     }
 
-    window.addEventListener("pointermove", handlePointerMove);
-    window.addEventListener("pointerup", handlePointerUp);
-    window.addEventListener("pointercancel", handlePointerUp);
+    window.addEventListener(
+      "pointermove",
+      handlePointerMove
+    );
+
+    window.addEventListener(
+      "pointerup",
+      handlePointerUp
+    );
+
+    window.addEventListener(
+      "pointercancel",
+      handlePointerUp
+    );
 
     return () => {
-      window.removeEventListener("pointermove", handlePointerMove);
-      window.removeEventListener("pointerup", handlePointerUp);
-      window.removeEventListener("pointercancel", handlePointerUp);
+      window.removeEventListener(
+        "pointermove",
+        handlePointerMove
+      );
+
+      window.removeEventListener(
+        "pointerup",
+        handlePointerUp
+      );
+
+      window.removeEventListener(
+        "pointercancel",
+        handlePointerUp
+      );
     };
   }, [isDragging]);
 
-  function handleDividerKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {
+  function handleDividerKeyDown(
+    e: React.KeyboardEvent<HTMLDivElement>
+  ) {
     if (e.key === "ArrowLeft") {
-      setSidebarWidth(width => Math.max(MIN_SIDEBAR_WIDTH, width - 20));
+      setSidebarWidth(width =>
+        Math.max(MIN_SIDEBAR_WIDTH, width - 20)
+      );
     }
 
     if (e.key === "ArrowRight") {
-      setSidebarWidth(width => Math.min(MAX_SIDEBAR_WIDTH, width + 20));
+      setSidebarWidth(width =>
+        Math.min(MAX_SIDEBAR_WIDTH, width + 20)
+      );
     }
   }
+
+  // ------------------------------------------------
+  // Loading state
+  // ------------------------------------------------
+
+  const loading = catalog.length === 0 && error === null;
 
   // ------------------------------------------------
   // Render
@@ -245,7 +417,11 @@ function DashboardContent() {
 
   return (
     <main
-      className={[styles.dashboard, intro ? styles.intro : "", isDragging ? styles.dragging : ""]
+      className={[
+        styles.dashboard,
+        intro ? styles.intro : "",
+        isDragging ? styles.dragging : "",
+      ]
         .filter(Boolean)
         .join(" ")}
       // Where the globe's center is, for backdrops that put something behind it
@@ -260,9 +436,12 @@ function DashboardContent() {
 
       <div
         className={styles.workspace}
-        // The landing has the globe alone; the sidebar comes in on the dashboard
         style={
-          intro ? undefined : { gridTemplateColumns: `${sidebarWidth}px 6px minmax(0, 1fr)` }
+          intro
+            ? undefined
+            : {
+                gridTemplateColumns: `${sidebarWidth}px 6px minmax(0, 1fr)`,
+              }
         }
       >
         {!intro && <DashboardSidebar />}
@@ -282,49 +461,75 @@ function DashboardContent() {
           />
         )}
 
-        <section ref={globeFrame} className={styles.visualization}>
+        <section
+          ref={globeFrame}
+          className={styles.visualization}
+        >
           <GlobeVisualization
             ref={globe}
             datasets={landed ? datasets : NO_DATASETS}
-            // The landing always lands on pillars over the textured Earth
-            visualizationType={intro ? VisualizationType.PILLARS : settings.dataDisplayType}
+            visualizationType={
+              intro
+                ? VisualizationType.PILLARS
+                : settings.dataDisplayType
+            }
             earthType={settings.earthDisplayType}
             onPointClick={handlePointClick}
-            // On the landing, the scroll moves the camera instead
             focus={intro ? null : focus}
             transparentBackground
             art={look.art}
           />
 
-          {!intro && !hasPlaceholder && loading && <div className={styles.status}>Loading data...</div>}
+          {/* Loading */}
+          {!intro && loading && (
+            <div className={styles.status}>
+              Loading species and geographic data...
+            </div>
+          )}
 
-          {!intro && !hasPlaceholder && error && (
-            <div className={styles.errorCard} role="alert">
+          {/* Backend error */}
+          {!intro && error && (
+            <div
+              className={styles.errorCard}
+              role="alert"
+            >
               <strong>Can't load the data.</strong>
+
               <p>{error}</p>
+
               <p>
-                Start the backend: in <code>backend/</code>, run{" "}
-                <code>uvicorn main:app --port 8000</code>. It should answer at {API_BASE}.
+                Check that the backend is running. From{" "}
+                <code>backend/</code>, run{" "}
+                <code>uvicorn main:app --port 8000</code>.
+                It should answer at {API_BASE}.
               </p>
             </div>
           )}
 
-          {!intro && panelOpen && selected && selectedGrab && (
-            <DetailPanel
-              key={`${selected.speciesKey}|${selected.region}|${selectedGrab.startYear}|${selectedGrab.endYear}`}
-              speciesKey={selected.speciesKey}
-              speciesName={selectedGrab.species[0]?.name ?? selected.speciesKey}
-              regionId={selected.region}
-              regionName={selectedRegionName}
-              point={selectedPoint}
-              start={selectedGrab.startYear}
-              end={selectedGrab.endYear}
-              onClose={() => setSelected(null)}
-            />
-          )}
+          {/* Detail panel */}
+          {!intro &&
+            panelOpen &&
+            selected &&
+            selectedGrab && (
+              <DetailPanel
+                key={`${selected.speciesKey}|${selected.region}|${selectedGrab.startYear}|${selectedGrab.endYear}`}
+                speciesKey={selected.speciesKey}
+                speciesName={
+                  selectedGrab.species[0]?.name ??
+                  selected.speciesKey
+                }
+                regionId={selected.region}
+                regionName={selectedRegionName}
+                point={selectedPoint}
+                start={selectedGrab.startYear}
+                end={selectedGrab.endYear}
+                onClose={() => setSelected(null)}
+              />
+            )}
         </section>
       </div>
 
+      {/* Landing page */}
       <Landing
         active={intro}
         onEnter={enter}
@@ -337,6 +542,10 @@ function DashboardContent() {
     </main>
   );
 }
+
+// --------------------------------------------------
+// Dashboard provider
+// --------------------------------------------------
 
 export default function Dashboard() {
   return (

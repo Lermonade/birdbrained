@@ -1,4 +1,13 @@
 .sidebar {
+  /* The look's sky and ink (src/looks). Re-pointing --bg, --text and --accent here
+     carries the shared dropdowns and date inputs along with it. */
+  --bg: var(--sky, #0b1d2c);
+  --text: var(--landing-ink, #fbf1dc);
+  --accent: #9fd1b2;
+  --muted: var(--landing-ink-dim, rgba(251, 241, 220, 0.84));
+  --line: color-mix(in srgb, var(--text) 22%, transparent);
+  --line-strong: color-mix(in srgb, var(--text) 40%, transparent);
+
   position: relative;
   display: flex;
   flex-direction: column;
@@ -62,7 +71,7 @@
   width: 100%;
   padding: 0.85rem 0;
   border: none;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.25);
+  border-bottom: 1px solid var(--line);
   background: transparent;
   color: var(--text);
   font-family: inherit;
@@ -73,7 +82,7 @@
 }
 
 .menuItem:first-of-type {
-  border-top: 1px solid rgba(0, 0, 0, 0.25);
+  border-top: 1px solid var(--line);
 }
 
 .menuItem:hover {
@@ -167,7 +176,7 @@
 .speciesCount {
   font-size: 0.8rem;
   font-weight: 600;
-  color: #77766f;
+  color: var(--muted);
 }
 
 /* Search bar */
@@ -181,10 +190,10 @@
   padding: 0 0.75rem;
   margin-bottom: 1rem;
 
-  border: 1px solid #aaa99f;
+  border: 1px solid var(--line-strong);
   border-radius: 6px;
 
-  color: #77766f;
+  color: var(--muted);
   background: transparent;
 }
 
@@ -201,7 +210,7 @@
 }
 
 .speciesSearch input::placeholder {
-  color: #929188;
+  color: var(--muted);
 }
 
 /* Scrollable species list */
@@ -267,7 +276,7 @@
 .speciesSubtitle {
   font-size: 0.75rem;
   line-height: 1.3;
-  color: #77766f;
+  color: var(--muted);
 }
 
 /* Scrollbar */
@@ -276,7 +285,7 @@
 }
 
 .speciesList::-webkit-scrollbar-thumb {
-  background: #c5c3ba;
+  background: var(--line-strong);
   border-radius: 10px;
 }
 
@@ -316,12 +325,12 @@
 
 .speciesResult:hover {
   transform: translateX(6px);
-  background-color: rgba(49, 92, 69, 0.07);
+  background-color: var(--line);
 }
 
 .speciesEmpty {
   padding: 0.5rem 0;
-  color: #77766f;
+  color: var(--muted);
   font-size: 0.8rem;
 }
 
@@ -330,7 +339,7 @@
 }
 
 .speciesResults::-webkit-scrollbar-thumb {
-  background: #c5c3ba;
+  background: var(--line-strong);
   border-radius: 10px;
 }
 
@@ -416,8 +425,8 @@
   flex-direction: column;
   gap: 1rem;
   padding: 1.1rem 0;
-  border-top: 1px solid rgba(0, 0, 0, 0.15);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
 }
 
 .settingHeading {
@@ -439,7 +448,7 @@
   width: 45px;
   height: 38px;
   padding: 2px;
-  border: 1px solid #aaa99f;
+  border: 1px solid var(--line-strong);
   border-radius: 6px;
   background: transparent;
   cursor: pointer;
@@ -447,7 +456,7 @@
 
 .colorValue {
   font-size: 0.8rem;
-  color: #77766f;
+  color: var(--muted);
   font-family: monospace;
 }
 

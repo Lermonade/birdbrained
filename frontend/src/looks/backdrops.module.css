@@ -107,10 +107,8 @@
   width: 270vh;
   height: 270vh;
   max-width: none;
+  /* No transition of its own: --globe-cx / --globe-cy already glide */
   transform: translate(-50%, -50%) translateY(calc((1 - var(--p)) * 78vh));
-  transition:
-    left 0.6s ease,
-    top 0.6s ease;
 }
 
 .reeds {

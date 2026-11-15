@@ -211,6 +211,11 @@
   animation: nudge 1.8s ease-in-out infinite;
 }
 
+.cueArrowSecond {
+  margin-top: -0.75rem;
+  animation-delay: 0.2s;
+}
+
 @keyframes nudge {
   50% {
     transform: translateY(5px);

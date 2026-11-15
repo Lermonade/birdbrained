@@ -6,13 +6,13 @@ import logo from "../../assets/birdbrained_logo.png";
 export default function Navbar() {
   const { pathname } = useLocation();
   // "/" and "/dashboard" share the globe; the navbar floats over it on both
-  const onLanding = pathname === "/";
   const onDashboard = pathname === "/dashboard";
-
+  // Every page sits on the look's dark sky, so the navbar always wears the look's ink;
+  // on the dashboard it also gets a sky-coloured bar
   const className = [
     styles.navbar,
-    onLanding || onDashboard ? styles.overGlobe : "",
-    onLanding ? styles.onLanding : "",
+    styles.overGlobe,
+    styles.onLanding,
     onDashboard ? styles.withBackground : "",
   ]
     .filter(Boolean)
@@ -21,10 +21,12 @@ export default function Navbar() {
   return (
     <nav className={className}>
       <NavLink to="/" className={styles.logo}>
-        <img
-          src={logo}
-          alt="BirdBrained logo"
+        {/* Painted in the text's colour: the logo's shape is a mask over currentColor */}
+        <span
+          role="img"
+          aria-label="BirdBrained logo"
           className={styles.logoImage}
+          style={{ maskImage: `url(${logo})`, WebkitMaskImage: `url(${logo})` }}
         />
         <span>BirdBrained</span>
       </NavLink>

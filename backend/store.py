@@ -111,6 +111,11 @@ def counts(species_key: str, region_id: str) -> list[int] | None:
     return _pipeline("counts.json").get(species_key, {}).get(region_id)
 
 
+def species_counts(species_key: str) -> dict[str, list[int]]:
+    """The species' record count per series year in every region it has any."""
+    return {region: n for region, n in _pipeline("counts.json").get(species_key, {}).items() if any(n)}
+
+
 def years() -> list[int]:
     """The years the bird data covers."""
     return series(species()[0]["key"])["years"]

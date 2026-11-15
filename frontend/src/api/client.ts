@@ -19,6 +19,14 @@ export interface Region {
   gadmGid: string;
   centroid: [number, number];
   areaKm2: number;
+  country?: string;
+  season?: "north" | "south";
+}
+
+/** Each region's sighting count for every year, per species: counts[i] is years[i]. */
+export interface CountsData {
+  years: number[];
+  species: Record<string, Record<string, number[]>>;
 }
 
 /** One state on the globe: the corrected and raw change between the chosen years. */
@@ -154,6 +162,9 @@ export const api = {
   species: () => request<Species[]>("/api/species"),
 
   regions: () => request<Region[]>("/api/regions"),
+
+  counts: (species?: string[]) =>
+    request<CountsData>(`/api/counts?${query({ species: species?.join(",") })}`),
 
   grabData: (species: string, start?: number, end?: number) =>
     request<GrabData>(`/api/grab_data?${query({ species, start, end })}`),

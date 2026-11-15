@@ -1,38 +1,81 @@
+/* The globe's center. Registered so they can be transitioned: when the sidebar
+   comes in or goes, the globe (and whatever a backdrop centers on it) glides over. */
+@property --globe-cx {
+  syntax: "<length-percentage>";
+  inherits: true;
+  initial-value: 50%;
+}
+
+@property --globe-cy {
+  syntax: "<length-percentage>";
+  inherits: true;
+  initial-value: 50%;
+}
+
 .dashboard {
+  --settle: cubic-bezier(0.22, 1, 0.36, 1);
+  --settle-time: 0.9s;
+
   position: relative;
   width: 100%;
   height: 100dvh;
   padding-top: var(--nav-h); /* the navbar floats over this */
   overflow: hidden;
   background: var(--sky, #000011); /* set by the look; see src/looks */
-  transition: padding-top 0.6s ease;
+  transition:
+    --globe-cx var(--settle-time) var(--settle),
+    --globe-cy var(--settle-time) var(--settle);
 }
 
-/* Landing up: the globe runs under the transparent navbar */
-.intro {
-  padding-top: 0;
-}
-
-/* Sidebar | resize handle | globe. On the landing there's only the globe;
-   Dashboard.tsx sets the columns while the sidebar is up. */
+/* Sidebar | resize handle | the globe's overlays, over the globe.
+   Dashboard.tsx sets the columns. Clicks pass through to the globe except on
+   the sidebar, the handle and the overlays themselves. */
 .workspace {
+  position: relative;
+  z-index: 1;
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
   width: 100%;
   height: 100%;
   min-height: 0;
+  pointer-events: none;
 }
 
-.workspace > aside {
+.sidebarSlot,
+.resizeHandle {
+  pointer-events: auto;
+  transform: translateX(0);
+  transition: transform var(--settle-time) var(--settle);
+}
+
+.sidebarSlot {
   min-width: 0;
+  min-height: 0;
   overflow: hidden;
+}
+
+/* On the landing they wait just off the left edge. Going back to the landing,
+   they leave a little quicker than they came. */
+.intro .sidebarSlot,
+.intro .resizeHandle {
+  transform: translateX(calc(-1 * (var(--sidebar-w) + 6px)));
+  transition-duration: 0.6s;
+}
+
+.overlays {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+}
+
+.overlays > * {
+  pointer-events: auto;
 }
 
 /* Divider */
 .resizeHandle {
   position: relative;
   height: 100%;
-  background: var(--bg);
+  background: color-mix(in srgb, var(--landing-ink, #fbf1dc) 22%, var(--sky, #0b1d2c));
   cursor: col-resize;
   touch-action: none;
   transition: background-color 0.15s ease;
@@ -66,22 +109,29 @@
   user-select: none !important;
 }
 
-/* Globe viewport. The landing slides, scales and fades it through these variables
-   as you scroll; on the dashboard they're unset and it sits still. */
+/* Globe viewport. It always covers the whole screen so its canvas never resizes;
+   --globe-cx / --globe-cy shift it beside the sidebar. The landing also slides,
+   scales and fades it through --globe-y, --globe-scale and --globe-opacity as you
+   scroll; on the dashboard those are unset. */
 .visualization {
-  position: relative;
-  min-width: 0;
-  min-height: 0;
-  width: 100%;
-  height: 100%;
+  position: absolute;
+  inset: 0;
   overflow: hidden;
   opacity: var(--globe-opacity, 1);
-  transform: translateY(var(--globe-y, 0)) scale(var(--globe-scale, 1));
+  transform: translate(
+      calc(var(--globe-cx) - 50%),
+      calc(var(--globe-cy) - 50% + var(--globe-y, 0px))
+    )
+    scale(var(--globe-scale, 1));
 }
 
 /* Until the landing has placed it, keep the globe out of sight below the screen */
 .intro .visualization {
-  transform: translateY(var(--globe-y, 110%)) scale(var(--globe-scale, 1));
+  transform: translate(
+      calc(var(--globe-cx) - 50%),
+      calc(var(--globe-cy) - 50% + var(--globe-y, 110%))
+    )
+    scale(var(--globe-scale, 1));
 }
 
 /* Loading and errors */
@@ -121,8 +171,15 @@
   font-size: 0.85em;
 }
 
+/* Resizing the sidebar: the globe keeps up with the pointer */
+.dragging {
+  transition: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .dashboard {
+  .dashboard,
+  .sidebarSlot,
+  .resizeHandle {
     transition: none;
   }
 

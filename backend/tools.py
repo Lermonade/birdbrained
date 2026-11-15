@@ -180,7 +180,7 @@ def run(name: str, args: dict) -> dict:
 
 
 def declarations() -> list[dict]:
-    """The tool list the model sees (OpenAI format). Species and regions are enums so the model can only
+    """The tool list the model sees. Species and regions are enums so the model can only
     pick real ids."""
     species_param = {
         "type": "string",

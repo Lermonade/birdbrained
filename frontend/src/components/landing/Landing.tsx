@@ -520,9 +520,14 @@ export default function Landing({
               ref={cueRef}
               className={styles.cue}
               onClick={() => engineRef.current?.play()}
+              aria-label="Take off"
             >
-              Scroll to take off
-              <ChevronDown size={20} className={styles.cueArrow} aria-hidden="true" />
+              <ChevronDown size={24} className={styles.cueArrow} aria-hidden="true" />
+              <ChevronDown
+                size={24}
+                className={`${styles.cueArrow} ${styles.cueArrowSecond}`}
+                aria-hidden="true"
+              />
             </button>
           </div>
         </div>

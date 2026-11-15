@@ -91,6 +91,12 @@ NO_DATA = {"trend": None, "rawTrend": None, "sufficiency": {"label": "insufficie
            "secondSource": None}
 
 
+def answerable_regions() -> dict[str, list[str]]:
+    """For every species, the regions with enough data for a trend: the ones the analyst can answer about."""
+    return {key: [region for region, entry in entries.items() if entry["sufficiency"]["label"] != "insufficient"]
+            for key, entries in _pipeline("trends.json").items()}
+
+
 def trend_entry(species_key: str, region_id: str) -> dict:
     """The trends.json entry for one species-region, or an insufficient one where the species isn't reported."""
     return trends(species_key).get(region_id, NO_DATA)

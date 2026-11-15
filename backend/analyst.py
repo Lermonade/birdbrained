@@ -60,7 +60,6 @@ class Evidence(BaseModel):
 class Hypothesis(BaseModel):
     cause: str
     support: list[str]
-    against: list[str]
 
 
 class DataCheck(BaseModel):
@@ -265,7 +264,7 @@ def _mock_answer(species: dict, region: dict) -> dict:
         "evidence": [
             {"claim": f"The trend changed {trend['changePerYear']:+.1f}% a year", "tool": "get_trend"},
         ],
-        "hypotheses": [{"cause": "Placeholder cause", "support": ["Placeholder"], "against": []}],
+        "hypotheses": [{"cause": "Placeholder cause", "support": ["Placeholder"]}],
         "next_steps": ["Set OPENAI_API_KEY in backend/.env to get real answers."],
     }
     calls = [{"tool": "check_sampling", "args": args, "ms": 9}, {"tool": "get_trend", "args": args, "ms": 12}]

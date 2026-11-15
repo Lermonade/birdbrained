@@ -22,6 +22,10 @@ interface AnalystPanelProps {
   /** Keys of the species on the globe, listed first. */
   shownKeys: string[];
   regions: Region[];
+  /** For every species, the region ids with enough data to answer about. Null: offer every region. */
+  answerable: Record<string, string[]> | null;
+  /** Called when a bird is picked here, to show it alone on the globe. */
+  onPickSpecies: (key: string) => void;
   /** The timeline's years, which the analyst looks at. */
   start?: number;
   end?: number;
@@ -33,6 +37,8 @@ export default function AnalystPanel({
   catalog,
   shownKeys,
   regions,
+  answerable,
+  onPickSpecies,
   start,
   end,
 }: AnalystPanelProps) {
@@ -48,22 +54,34 @@ export default function AnalystPanel({
     .filter(s => !shownKeys.includes(s.key))
     .sort((a, b) => a.commonName.localeCompare(b.commonName));
 
+  // Only the places this bird has enough data in
+  const available = useMemo(() => {
+    if (!answerable) return regions;
+    const ids = new Set(answerable[speciesKey] ?? []);
+    return regions.filter(r => ids.has(r.id));
+  }, [regions, answerable, speciesKey]);
+
   // Countries, each with its states or provinces in alphabetical order
   const byCountry = useMemo(() => {
     const grouped = new Map<string, Region[]>();
-    for (const region of regions) {
+    for (const region of available) {
       const country = region.country ?? "Other";
       grouped.set(country, [...(grouped.get(country) ?? []), region]);
     }
     for (const list of grouped.values()) list.sort((a, b) => a.name.localeCompare(b.name));
     return new Map([...grouped].sort(([a], [b]) => a.localeCompare(b)));
-  }, [regions]);
+  }, [available]);
 
-  // The country follows the chosen state; picking a country alone clears the state
-  const region = regions.find(r => r.id === analyst.regionId);
+  // The country follows the chosen state (even one this bird has no data in, which then
+  // reads "Choose one"); picking a country alone clears the state. A country this bird
+  // has no data in falls back to the first one it has.
+  const region = available.find(r => r.id === analyst.regionId);
+  const chosenCountry = regions.find(r => r.id === analyst.regionId)?.country;
   const [pickedCountry, setPickedCountry] = useState(DEFAULT_COUNTRY);
-  const country = region ? region.country ?? "Other" : pickedCountry;
+  const wantedCountry = chosenCountry ?? pickedCountry;
+  const country = byCountry.has(wantedCountry) ? wantedCountry : [...byCountry.keys()][0] ?? "";
   const countryRegions = byCountry.get(country) ?? [];
+  const noPlaces = speciesKey !== "" && byCountry.size === 0;
 
   const question = analyst.question.trim();
   const loading = state.status === "loading";
@@ -105,7 +123,10 @@ export default function AnalystPanel({
           <select
             id="analyst-species"
             value={speciesKey}
-            onChange={e => analyst.setSpeciesKey(e.target.value)}
+            onChange={e => {
+              analyst.setSpeciesKey(e.target.value);
+              onPickSpecies(e.target.value);
+            }}
           >
             {speciesKey === "" && <option value="">Choose a bird</option>}
             {shown.length > 0 && (
@@ -132,11 +153,13 @@ export default function AnalystPanel({
           <select
             id="analyst-country"
             value={country}
+            disabled={noPlaces}
             onChange={e => {
               setPickedCountry(e.target.value);
               analyst.setRegionId("");
             }}
           >
+            {noPlaces && <option value="">No places with enough data</option>}
             {[...byCountry.keys()].map(name => (
               <option key={name} value={name}>
                 {name}
@@ -150,9 +173,10 @@ export default function AnalystPanel({
           <select
             id="analyst-region"
             value={region?.id ?? ""}
+            disabled={noPlaces}
             onChange={e => analyst.setRegionId(e.target.value)}
           >
-            {!region && <option value="">Choose one</option>}
+            {!region && <option value="">{noPlaces ? "None for this bird" : "Choose one"}</option>}
             {countryRegions.map(r => (
               <option key={r.id} value={r.id}>
                 {r.name}

@@ -22,7 +22,14 @@ import { api, API_BASE } from "../../api/client";
 import type { CountsData, GrabData, Region, Species } from "../../api/client";
 import { ContextProvider, useContextSettings } from "../../context/Context";
 import { useLook } from "../../looks";
-import { maxCount, maxRegionTotal, parsePointId, toDatasets, type SpeciesSightings } from "./globeData";
+import {
+  maxCount,
+  maxRegionTotal,
+  parsePointId,
+  toDatasets,
+  viewOfSpecies,
+  type SpeciesSightings,
+} from "./globeData";
 import { findTemplate, TEMPLATES, type BirdTemplate } from "../templates/templateData";
 
 import styles from "./dashboard.module.css";
@@ -106,6 +113,23 @@ function DashboardContent() {
   // The sidebar's analyst. Kept here so an answer on its way survives leaving its page.
   const analyst = useAnalyst();
   const chooseForAnalyst = analyst.choose;
+
+  // For every species, the places the analyst has enough data to answer about.
+  // Null until loaded (or if it fails); the analyst then offers every place.
+  const [analystRegions, setAnalystRegions] = useState<Record<string, string[]> | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    api.analystRegions()
+      .then(result => {
+        if (!cancelled) setAnalystRegions(result);
+      })
+      .catch(() => {
+        // The analyst offers every place instead
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // The stamps come up when the landing's bird reaches the globe, and go again
   // if the scene is rewound. Loading the dashboard directly, they're up from the start.
@@ -289,6 +313,38 @@ function DashboardContent() {
     [activeTemplateIds, hideTemplates, showTemplates]
   );
 
+  // Whenever a bird is newly put on the globe (sidebar, templates or analyst), the camera
+  // flies to it. The birds already there when the data loads don't count.
+  const previousIds = useRef<number[] | null>(null);
+  useEffect(() => {
+    if (!counts || catalog.length === 0) return;
+    const before = previousIds.current;
+    previousIds.current = selectedSpeciesIds;
+    if (before === null) return;
+
+    const addedId = selectedSpeciesIds.find(id => !before.includes(id));
+    const key = addedId === undefined ? undefined : catalog[addedId - 1]?.key;
+    if (!key) return;
+
+    // A template's bird has its own hand-picked view
+    const template = TEMPLATES.find(t => t.speciesKey === key);
+    const view = template?.view ?? viewOfSpecies(counts.species[key], regions);
+    if (view) setFocus({ ...view }); // a fresh object, so the camera flies even to the same view
+  }, [selectedSpeciesIds, counts, catalog, regions]);
+
+  // Picking a bird in the analyst puts that bird alone on the globe
+  const showOnlySpecies = useCallback(
+    (key: string) => {
+      const id = catalog.findIndex(s => s.key === key) + 1;
+      if (id === 0) return;
+      for (const shownId of selectedSpeciesIds) {
+        if (shownId !== id) removeSelectedSpecies(shownId);
+      }
+      void addSelectedSpecies(id);
+    },
+    [catalog, selectedSpeciesIds, removeSelectedSpecies, addSelectedSpecies]
+  );
+
   // The detail panel's numbers: the clicked species' change over the timeline's years.
   // Fetched once the years stop moving; the last answer stays up meanwhile.
   const [panelGrab, setPanelGrab] = useState<GrabData | null>(null);
@@ -447,6 +503,8 @@ function DashboardContent() {
                 catalog={catalog}
                 shownKeys={shownSpecies.map(s => s.key)}
                 regions={regions}
+                answerable={analystRegions}
+                onPickSpecies={showOnlySpecies}
                 start={range?.start}
                 end={range?.end}
               />

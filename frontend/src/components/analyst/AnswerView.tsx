@@ -35,12 +35,7 @@ export default function AnswerView({ result, title, full = false }: AnswerViewPr
           <h4 className={styles.smallTitle}>Possible causes</h4>
           <ul className={styles.list}>
             {answer.hypotheses.map((hypothesis, i) => (
-              <li key={i}>
-                {hypothesis.cause}
-                {hypothesis.against.length > 0 && (
-                  <span className={styles.against}> Against: {hypothesis.against.join(" ")}</span>
-                )}
-              </li>
+              <li key={i}>{hypothesis.cause}</li>
             ))}
           </ul>
         </>

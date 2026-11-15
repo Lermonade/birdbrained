@@ -117,3 +117,49 @@ export function toDatasets(
     }),
   }));
 }
+
+/**
+ * Where to point the camera to see one species: the middle of the regions it has sightings in,
+ * weighted by how many, with the camera far enough back to take in the spread. Averaged on the
+ * sphere, so a range that crosses the date line doesn't land on the wrong side of the world.
+ */
+export function viewOfSpecies(
+  perRegion: Record<string, number[]> | undefined,
+  regions: Region[]
+): { lat: number; lng: number; altitude: number } | null {
+  if (!perRegion) return null;
+  const centroids = new Map(regions.map(r => [r.id, r.centroid]));
+  const rad = Math.PI / 180;
+
+  const places: { lat: number; lng: number; weight: number }[] = [];
+  for (const [id, perYear] of Object.entries(perRegion)) {
+    const centroid = centroids.get(id);
+    const weight = perYear.reduce((sum, n) => sum + n, 0);
+    if (centroid && weight > 0) places.push({ lat: centroid[0], lng: centroid[1], weight });
+  }
+  if (places.length === 0) return null;
+
+  let x = 0, y = 0, z = 0, total = 0;
+  for (const p of places) {
+    const w = Math.sqrt(p.weight); // so one very busy state doesn't drag the view away from the rest
+    x += w * Math.cos(p.lat * rad) * Math.cos(p.lng * rad);
+    y += w * Math.cos(p.lat * rad) * Math.sin(p.lng * rad);
+    z += w * Math.sin(p.lat * rad);
+    total += w;
+  }
+  x /= total; y /= total; z /= total;
+  const lat = Math.atan2(z, Math.hypot(x, y)) / rad;
+  const lng = Math.atan2(y, x) / rad;
+
+  // The farthest place from the middle (angle, degrees) sets how far back the camera sits
+  let spread = 0;
+  for (const p of places) {
+    const cos =
+      Math.sin(lat * rad) * Math.sin(p.lat * rad) +
+      Math.cos(lat * rad) * Math.cos(p.lat * rad) * Math.cos((p.lng - lng) * rad);
+    spread = Math.max(spread, Math.acos(Math.min(1, Math.max(-1, cos))) / rad);
+  }
+  const altitude = Math.min(2.6, Math.max(1.1, 0.9 + spread / 30));
+
+  return { lat, lng, altitude };
+}

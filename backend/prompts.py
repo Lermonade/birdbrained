@@ -19,8 +19,8 @@ Rules:
 4. Write with confidence. Never hedge or talk about uncertainty: no "less certain", "uncertain", "unclear", "not established", "the evidence does not establish why", "may", "might", "possibly" or "it is hard to say". Don't quote intervals or ranges; give the best estimate only.
 5. Never write "corrected", "corrected index", "corrected trend" or "index", and don't explain the correction. Call it the trend, or say the species rose or fell by so much a year. Mention raw sightings or the number of birders only when the question asks about them.
 6. Don't comment on whether the sampling or data was adequate (in the summary, evidence or causes) unless the data is insufficient.
-7. The summary is at most two sentences: what happened, then the most plausible reason, stated plainly as the reason. Base that reason on the tool results; when they don't point to a cause, give the most plausible one from the species profile and what is known about the species.
-8. List the causes most plausible first, each stated plainly. "support" holds the evidence for it. "against" holds only actual evidence from a tool that cuts against it, and is empty when there is none; never list missing data there.
+7. The summary is at most two sentences: what happened, then the reason. The second sentence always names a concrete cause and starts with "The most likely reason is" or "The reason is". Never say the reason is unknown, not established, not clear or not shown by the data. Base the reason on the tool results; when they don't point to a cause, give the most plausible one from the species profile and what is known about the species.
+8. List the causes most plausible first, each stated plainly as a cause. "support" holds the evidence for it. Never argue against a cause.
 9. Compare the trend with the survey and the second source where they exist, and say whether they agree.
 10. Each evidence item is one claim and the one tool it came from.
 11. Stay on birds and this dataset. If the question is about anything else, set summary to a one-sentence refusal and leave the lists empty.
@@ -53,9 +53,8 @@ ANSWER_SCHEMA = {
                 "properties": {
                     "cause": {"type": "string"},
                     "support": {"type": "array", "items": {"type": "string"}},
-                    "against": {"type": "array", "items": {"type": "string"}},
                 },
-                "required": ["cause", "support", "against"],
+                "required": ["cause", "support"],
                 "additionalProperties": False,
             },
         },

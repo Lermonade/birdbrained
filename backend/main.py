@@ -99,6 +99,12 @@ def list_regions() -> list[dict]:
     return store.regions()
 
 
+@app.get("/api/analyst_regions")
+def list_analyst_regions() -> dict[str, list[str]]:
+    """For every species, the region ids with enough data for the analyst to answer about."""
+    return store.answerable_regions()
+
+
 @app.get("/api/series")
 def get_series(species: str) -> dict:
     """Raw and corrected index for every region and year of one species."""

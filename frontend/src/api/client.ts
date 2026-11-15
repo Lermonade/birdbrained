@@ -110,7 +110,6 @@ export interface Answer {
   hypotheses: {
     cause: string;
     support: string[];
-    against: string[];
   }[];
   next_steps: string[];
 }
@@ -163,6 +162,9 @@ export const api = {
   species: () => request<Species[]>("/api/species"),
 
   regions: () => request<Region[]>("/api/regions"),
+
+  /** For every species, the region ids the analyst has enough data to answer about. */
+  analystRegions: () => request<Record<string, string[]>>("/api/analyst_regions"),
 
   counts: (species?: string[], basis?: Basis) =>
     request<CountsData>(`/api/counts?${query({ species: species?.join(","), basis })}`),

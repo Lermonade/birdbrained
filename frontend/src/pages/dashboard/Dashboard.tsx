@@ -1,49 +1,81 @@
-import { useEffect, useRef, useState } from "react";
+
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import GlobeVisualization, {
   type DataSet,
-  VisualizationType,
-  EarthType,
 } from "../../components/globe_visualization/GlobeVisualization";
 
 import DashboardSidebar from "../../components/sidebar/Sidebar";
 
-import styles from "./dashboard.module.css";
+import {
+  ContextProvider,
+  useContextSettings,
+} from "../../context/Context";
 
-const datasets: DataSet[] = [
-  {
-    name: "Robin",
-    color: "#be2e2e",
-    dataPoints: [
-      { lat: 40.7128, lng: -74.0060, height: 0.15, population: 100 },
-      { lat: 51.5072, lng: -0.1276, height: 0.25, population: 500 },
-      { lat: 35.6762, lng: 139.6503, height: 0.35, population: 250 },
-    ],
-  },
-  {
-    name: "Kingfisher",
-    color: "#E5A84B",
-    dataPoints: [
-      { lat: -33.8688, lng: 151.2093, height: 0.30, population: 800 },
-      { lat: 37.7749, lng: -122.4194, height: 0.18, population: 150 },
-      { lat: 28.6139, lng: 77.2090, height: 0.22, population: 350 },
-    ],
-  },
-  {
-    name: "Bluebird",
-    color: "#729BD1",
-    dataPoints: [
-      { lat: 55.7558, lng: 37.6173, height: 0.28, population: 400 },
-      { lat: 48.8566, lng: 2.3522, height: 0.20, population: 200 },
-    ],
-  },
-];
+import styles from "./dashboard.module.css";
 
 const MIN_SIDEBAR_WIDTH = 220;
 const MAX_SIDEBAR_WIDTH = 600;
 const DEFAULT_SIDEBAR_WIDTH = 320;
 
-export default function Dashboard() {
+// --------------------------------------------------
+// Dashboard content
+// --------------------------------------------------
+
+function DashboardContent() {
+  const {
+    settings,
+    selectedSpecies,
+    speciesData,
+    updateSpeciesList,
+  } = useContextSettings();
+
+  // ------------------------------------------------
+  // Initialize species catalogue
+  // ------------------------------------------------
+
+  useEffect(() => {
+    updateSpeciesList([
+      { name: "Robin", sightings: 1248 },
+      { name: "Kingfisher", sightings: 856 },
+      { name: "Bluebird", sightings: 634 },
+      { name: "Barn Owl", sightings: 921 },
+      { name: "Goldfinch", sightings: 1450 },
+      { name: "Woodpecker", sightings: 782 },
+      { name: "Blackbird", sightings: 1102 },
+      { name: "Sparrow", sightings: 1875 },
+      { name: "Hummingbird", sightings: 542 },
+      { name: "Eagle", sightings: 318 },
+    ]);
+  }, [updateSpeciesList]);
+
+  // ------------------------------------------------
+  // Build visualization datasets
+  // ------------------------------------------------
+
+  const datasets: DataSet[] = useMemo(
+    () =>
+      selectedSpecies.flatMap(species => {
+        const data = speciesData.find(
+          item => item.speciesId === species.id
+        );
+
+        // Don't render species until geographic data loads.
+        if (!data) return [];
+
+        return [{
+          name: species.name,
+          color: species.color,
+          dataPoints: data.dataPoints,
+        }];
+      }),
+    [selectedSpecies, speciesData]
+  );
+
+  // ------------------------------------------------
+  // Sidebar resizing
+  // ------------------------------------------------
+
   const [sidebarWidth, setSidebarWidth] = useState(
     DEFAULT_SIDEBAR_WIDTH
   );
@@ -112,6 +144,10 @@ export default function Dashboard() {
     }
   }
 
+  // ------------------------------------------------
+  // Render
+  // ------------------------------------------------
+
   return (
     <main
       className={`${styles.dashboard} ${
@@ -139,10 +175,22 @@ export default function Dashboard() {
       <section className={styles.visualization}>
         <GlobeVisualization
           datasets={datasets}
-          visualizationType={VisualizationType.PILLARS}
-          earthType={EarthType.TEXTURED}
+          visualizationType={settings.dataDisplayType}
+          earthType={settings.earthDisplayType}
         />
       </section>
     </main>
+  );
+}
+
+// --------------------------------------------------
+// Dashboard provider
+// --------------------------------------------------
+
+export default function Dashboard() {
+  return (
+    <ContextProvider>
+      <DashboardContent />
+    </ContextProvider>
   );
 }

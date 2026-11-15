@@ -2,90 +2,39 @@
   {
     "id": "a_0001",
     "type": "regional_divergence",
-    "species": "red_bellied_woodpecker",
-    "region": "US-CO",
+    "species": "australian_magpie",
+    "region": "AUS.6_1",
     "years": [
       2010,
       2025
     ],
     "direction": "down",
-    "headline": "Red-bellied Woodpecker is falling faster in Colorado than elsewhere in its range",
-    "changePerYear": -14.7,
-    "z": 17.1,
-    "score": 12.8,
-    "sufficiency": "limited",
+    "headline": "Australian Magpie is falling faster in Northern Territory, Australia than elsewhere in its range",
+    "changePerYear": -9.4,
+    "z": 22.6,
+    "score": 22.6,
+    "sufficiency": "good",
     "confirmedBySecondSource": false
   },
   {
     "id": "a_0002",
     "type": "strong_trend",
-    "species": "western_cattle_egret",
-    "region": "US-NJ",
+    "species": "burrowing_owl",
+    "region": "US-CA",
     "years": [
       2010,
       2025
     ],
     "direction": "down",
-    "headline": "Western Cattle Egret is falling fast in New Jersey",
-    "changePerYear": -13.1,
-    "z": 7.3,
-    "score": 7.3,
+    "headline": "Burrowing Owl is falling fast in California",
+    "changePerYear": -11.9,
+    "z": 5.6,
+    "score": 7.0,
     "sufficiency": "good",
-    "confirmedBySecondSource": false
-  },
-  {
-    "id": "a_0003",
-    "type": "sudden_change",
-    "species": "american_goldfinch",
-    "region": "US-TX",
-    "years": [
-      2013,
-      2014
-    ],
-    "direction": "up",
-    "headline": "American Goldfinch jumped sharply in Texas from 2013 to 2014",
-    "changePerYear": -0.5,
-    "z": 14.4,
-    "score": 14.4,
-    "sufficiency": "good",
-    "confirmedBySecondSource": false
-  },
-  {
-    "id": "a_0004",
-    "type": "regional_divergence",
-    "species": "northern_cardinal",
-    "region": "CAN.4_1",
-    "years": [
-      2010,
-      2025
-    ],
-    "direction": "up",
-    "headline": "Northern Cardinal is rising faster in New Brunswick, Canada than elsewhere in its range",
-    "changePerYear": 13.9,
-    "z": 12.2,
-    "score": 9.2,
-    "sufficiency": "limited",
-    "confirmedBySecondSource": false
-  },
-  {
-    "id": "a_0005",
-    "type": "strong_trend",
-    "species": "egyptian_goose",
-    "region": "US-TX",
-    "years": [
-      2010,
-      2025
-    ],
-    "direction": "up",
-    "headline": "Egyptian Goose is rising fast in Texas",
-    "changePerYear": 16.9,
-    "z": 7.3,
-    "score": 6.8,
-    "sufficiency": "limited",
     "confirmedBySecondSource": true
   },
   {
-    "id": "a_0006",
+    "id": "a_0003",
     "type": "sudden_change",
     "species": "white_wagtail",
     "region": "GBR.3_1",
@@ -95,11 +44,62 @@
     ],
     "direction": "down",
     "headline": "White Wagtail dropped sharply in Scotland, United Kingdom from 2019 to 2021",
-    "changePerYear": -1.8,
-    "z": 18.9,
-    "score": 14.2,
+    "changePerYear": -1.6,
+    "z": 19.2,
+    "score": 19.2,
+    "sufficiency": "good",
+    "confirmedBySecondSource": false
+  },
+  {
+    "id": "a_0004",
+    "type": "regional_divergence",
+    "species": "red_bellied_woodpecker",
+    "region": "US-CO",
+    "years": [
+      2010,
+      2025
+    ],
+    "direction": "down",
+    "headline": "Red-bellied Woodpecker is falling faster in Colorado than elsewhere in its range",
+    "changePerYear": -14.7,
+    "z": 16.1,
+    "score": 12.0,
     "sufficiency": "limited",
     "confirmedBySecondSource": false
+  },
+  {
+    "id": "a_0005",
+    "type": "strong_trend",
+    "species": "northern_saw_whet_owl",
+    "region": "CAN.11_1",
+    "years": [
+      2010,
+      2025
+    ],
+    "direction": "down",
+    "headline": "Northern Saw-whet Owl is falling fast in Qu\u00e9bec, Canada",
+    "changePerYear": -14.6,
+    "z": 6.9,
+    "score": 6.9,
+    "sufficiency": "good",
+    "confirmedBySecondSource": false
+  },
+  {
+    "id": "a_0006",
+    "type": "sudden_change",
+    "species": "house_sparrow",
+    "region": "GBR.3_1",
+    "years": [
+      2019,
+      2021
+    ],
+    "direction": "up",
+    "headline": "House Sparrow jumped sharply in Scotland, United Kingdom from 2019 to 2021",
+    "changePerYear": 2.7,
+    "z": 15.2,
+    "score": 19.0,
+    "sufficiency": "good",
+    "confirmedBySecondSource": true
   },
   {
     "id": "a_0007",
@@ -112,24 +112,24 @@
     ],
     "direction": "up",
     "headline": "Northern Cardinal is rising faster in Nova Scotia, Canada than elsewhere in its range",
-    "changePerYear": 11.1,
-    "z": 9.4,
-    "score": 8.8,
-    "sufficiency": "limited",
+    "changePerYear": 10.0,
+    "z": 7.1,
+    "score": 8.9,
+    "sufficiency": "good",
     "confirmedBySecondSource": true
   },
   {
     "id": "a_0008",
     "type": "strong_trend",
     "species": "western_cattle_egret",
-    "region": "US-MD",
+    "region": "US-NJ",
     "years": [
       2010,
       2025
     ],
     "direction": "down",
-    "headline": "Western Cattle Egret is falling fast in Maryland",
-    "changePerYear": -11.2,
+    "headline": "Western Cattle Egret is falling fast in New Jersey",
+    "changePerYear": -13.1,
     "z": 6.2,
     "score": 6.2,
     "sufficiency": "good",
@@ -138,19 +138,19 @@
   {
     "id": "a_0009",
     "type": "sudden_change",
-    "species": "house_sparrow",
+    "species": "carrion_crow",
     "region": "GBR.3_1",
     "years": [
-      2019,
-      2021
+      2020,
+      2020
     ],
     "direction": "up",
-    "headline": "House Sparrow jumped sharply in Scotland, United Kingdom from 2019 to 2021",
-    "changePerYear": -1.0,
-    "z": 17.5,
-    "score": 13.1,
-    "sufficiency": "limited",
-    "confirmedBySecondSource": false
+    "headline": "Carrion Crow jumped sharply in Scotland, United Kingdom in 2020",
+    "changePerYear": 4.5,
+    "z": 15.1,
+    "score": 18.8,
+    "sufficiency": "good",
+    "confirmedBySecondSource": true
   },
   {
     "id": "a_0010",
@@ -172,141 +172,90 @@
   {
     "id": "a_0011",
     "type": "strong_trend",
-    "species": "western_cattle_egret",
-    "region": "US-IL",
+    "species": "american_barn_owl",
+    "region": "US-CO",
     "years": [
       2010,
       2025
     ],
     "direction": "down",
-    "headline": "Western Cattle Egret is falling fast in Illinois",
-    "changePerYear": -14.7,
-    "z": 8.1,
-    "score": 6.1,
-    "sufficiency": "limited",
+    "headline": "American Barn Owl is falling fast in Colorado",
+    "changePerYear": -12.6,
+    "z": 5.9,
+    "score": 5.9,
+    "sufficiency": "good",
     "confirmedBySecondSource": false
   },
   {
     "id": "a_0012",
     "type": "sudden_change",
-    "species": "carolina_wren",
-    "region": "US-WI",
+    "species": "eurasian_wren",
+    "region": "TWN.7_1",
     "years": [
-      2013,
-      2014
+      2023,
+      2024
     ],
     "direction": "up",
-    "headline": "Carolina Wren jumped sharply in Wisconsin from 2013 to 2014",
-    "changePerYear": 7.6,
-    "z": 17.2,
-    "score": 12.9,
-    "sufficiency": "limited",
+    "headline": "Eurasian Wren jumped sharply in Taiwan, Chinese Taipei from 2023 to 2024",
+    "changePerYear": -11.2,
+    "z": 15.4,
+    "score": 15.4,
+    "sufficiency": "good",
     "confirmedBySecondSource": false
   },
   {
     "id": "a_0013",
     "type": "regional_divergence",
     "species": "northern_cardinal",
-    "region": "US-ND",
+    "region": "CAN.4_1",
     "years": [
       2010,
       2025
     ],
     "direction": "up",
-    "headline": "Northern Cardinal is rising faster in North Dakota than elsewhere in its range",
-    "changePerYear": 12.5,
-    "z": 10.8,
-    "score": 8.1,
-    "sufficiency": "limited",
+    "headline": "Northern Cardinal is rising faster in New Brunswick, Canada than elsewhere in its range",
+    "changePerYear": 10.4,
+    "z": 7.5,
+    "score": 7.5,
+    "sufficiency": "good",
     "confirmedBySecondSource": false
   },
   {
     "id": "a_0014",
     "type": "strong_trend",
-    "species": "carolina_wren",
-    "region": "US-NH",
-    "years": [
-      2010,
-      2025
-    ],
-    "direction": "up",
-    "headline": "Carolina Wren is rising fast in New Hampshire",
-    "changePerYear": 13.7,
-    "z": 6.0,
-    "score": 6.0,
-    "sufficiency": "good",
-    "confirmedBySecondSource": false
-  },
-  {
-    "id": "a_0015",
-    "type": "sudden_change",
-    "species": "american_goldfinch",
-    "region": "US-SC",
-    "years": [
-      2012,
-      2013
-    ],
-    "direction": "up",
-    "headline": "American Goldfinch jumped sharply in South Carolina from 2012 to 2013",
-    "changePerYear": -1.9,
-    "z": 9.4,
-    "score": 11.8,
-    "sufficiency": "good",
-    "confirmedBySecondSource": true
-  },
-  {
-    "id": "a_0016",
-    "type": "regional_divergence",
-    "species": "american_goldfinch",
-    "region": "US-CA",
+    "species": "great_horned_owl",
+    "region": "CAN.9_1",
     "years": [
       2010,
       2025
     ],
     "direction": "down",
-    "headline": "American Goldfinch is falling faster in California than elsewhere in its range",
-    "changePerYear": -5.6,
-    "z": 6.3,
-    "score": 7.9,
+    "headline": "Great Horned Owl is falling fast in Ontario, Canada",
+    "changePerYear": -9.2,
+    "z": 4.4,
+    "score": 5.5,
     "sufficiency": "good",
     "confirmedBySecondSource": true
   },
   {
-    "id": "a_0017",
-    "type": "strong_trend",
-    "species": "egyptian_goose",
-    "region": "US-CA",
-    "years": [
-      2010,
-      2025
-    ],
-    "direction": "up",
-    "headline": "Egyptian Goose is rising fast in California",
-    "changePerYear": 10.7,
-    "z": 4.6,
-    "score": 5.8,
-    "sufficiency": "good",
-    "confirmedBySecondSource": true
-  },
-  {
-    "id": "a_0018",
+    "id": "a_0015",
     "type": "sudden_change",
-    "species": "western_cattle_egret",
-    "region": "US-NJ",
+    "species": "black_kite",
+    "region": "ESP.1_1",
     "years": [
-      2023,
-      2024
+      2012,
+      2016
     ],
     "direction": "up",
-    "headline": "Western Cattle Egret jumped sharply in New Jersey from 2023 to 2024",
-    "changePerYear": -13.1,
-    "z": 11.6,
-    "score": 11.6,
+    "headline": "Black Kite jumped sharply in Andaluc\u00eda, Spain from 2012 to 2016",
+    "changePerYear": -6.9,
+    "z": 15.3,
+    "score": 15.3,
     "sufficiency": "good",
     "confirmedBySecondSource": false
   },
   {
-    "id": "a_0019",
+    "id": "a_0016",
     "type": "regional_divergence",
     "species": "red_bellied_woodpecker",
     "region": "US-VT",
@@ -317,42 +266,93 @@
     "direction": "up",
     "headline": "Red-bellied Woodpecker is rising faster in Vermont than elsewhere in its range",
     "changePerYear": 8.7,
-    "z": 6.3,
-    "score": 7.9,
+    "z": 5.8,
+    "score": 7.2,
     "sufficiency": "good",
     "confirmedBySecondSource": true
   },
   {
-    "id": "a_0020",
+    "id": "a_0017",
     "type": "strong_trend",
-    "species": "western_cattle_egret",
-    "region": "US-KS",
+    "species": "northern_saw_whet_owl",
+    "region": "US-CA",
     "years": [
       2010,
       2025
     ],
     "direction": "down",
-    "headline": "Western Cattle Egret is falling fast in Kansas",
-    "changePerYear": -10.4,
-    "z": 5.8,
-    "score": 5.8,
+    "headline": "Northern Saw-whet Owl is falling fast in California",
+    "changePerYear": -11.5,
+    "z": 5.4,
+    "score": 5.4,
+    "sufficiency": "good",
+    "confirmedBySecondSource": false
+  },
+  {
+    "id": "a_0018",
+    "type": "sudden_change",
+    "species": "american_goldfinch",
+    "region": "US-TX",
+    "years": [
+      2013,
+      2014
+    ],
+    "direction": "up",
+    "headline": "American Goldfinch jumped sharply in Texas from 2013 to 2014",
+    "changePerYear": -0.5,
+    "z": 14.2,
+    "score": 14.2,
+    "sufficiency": "good",
+    "confirmedBySecondSource": false
+  },
+  {
+    "id": "a_0019",
+    "type": "regional_divergence",
+    "species": "welcome_swallow",
+    "region": "NZL.18_1",
+    "years": [
+      2010,
+      2025
+    ],
+    "direction": "up",
+    "headline": "Welcome Swallow is rising faster in Wellington, New Zealand than elsewhere in its range",
+    "changePerYear": 6.4,
+    "z": 7.2,
+    "score": 7.2,
+    "sufficiency": "good",
+    "confirmedBySecondSource": false
+  },
+  {
+    "id": "a_0020",
+    "type": "strong_trend",
+    "species": "eurasian_wren",
+    "region": "TWN.7_1",
+    "years": [
+      2010,
+      2025
+    ],
+    "direction": "down",
+    "headline": "Eurasian Wren is falling fast in Taiwan, Chinese Taipei",
+    "changePerYear": -11.2,
+    "z": 5.3,
+    "score": 5.3,
     "sufficiency": "good",
     "confirmedBySecondSource": false
   },
   {
     "id": "a_0021",
     "type": "sudden_change",
-    "species": "western_cattle_egret",
-    "region": "US-UT",
+    "species": "great_egret",
+    "region": "AUS.10_1",
     "years": [
       2016,
-      2017
+      2016
     ],
-    "direction": "up",
-    "headline": "Western Cattle Egret jumped sharply in Utah from 2016 to 2017",
-    "changePerYear": -2.3,
-    "z": 10.1,
-    "score": 10.1,
+    "direction": "down",
+    "headline": "Great Egret dropped sharply in Victoria, Australia in 2016",
+    "changePerYear": -6.1,
+    "z": 14.2,
+    "score": 14.2,
     "sufficiency": "good",
     "confirmedBySecondSource": false
   },
@@ -360,82 +360,82 @@
     "id": "a_0022",
     "type": "regional_divergence",
     "species": "northern_cardinal",
-    "region": "CAN.11_1",
+    "region": "US-ND",
     "years": [
       2010,
       2025
     ],
     "direction": "up",
-    "headline": "Northern Cardinal is rising faster in Qu\u00e9bec, Canada than elsewhere in its range",
-    "changePerYear": 7.9,
-    "z": 6.2,
-    "score": 7.7,
-    "sufficiency": "good",
-    "confirmedBySecondSource": true
-  },
-  {
-    "id": "a_0023",
-    "type": "strong_trend",
-    "species": "carolina_wren",
-    "region": "US-RI",
-    "years": [
-      2010,
-      2025
-    ],
-    "direction": "up",
-    "headline": "Carolina Wren is rising fast in Rhode Island",
-    "changePerYear": 16.3,
-    "z": 7.1,
-    "score": 5.3,
+    "headline": "Northern Cardinal is rising faster in North Dakota than elsewhere in its range",
+    "changePerYear": 12.5,
+    "z": 9.3,
+    "score": 6.9,
     "sufficiency": "limited",
     "confirmedBySecondSource": false
   },
   {
-    "id": "a_0024",
-    "type": "sudden_change",
-    "species": "song_sparrow",
-    "region": "US-AK",
-    "years": [
-      2020,
-      2020
-    ],
-    "direction": "up",
-    "headline": "Song Sparrow jumped sharply in Alaska in 2020",
-    "changePerYear": 5.7,
-    "z": 10.0,
-    "score": 10.0,
-    "sufficiency": "good",
-    "confirmedBySecondSource": false
-  },
-  {
-    "id": "a_0025",
-    "type": "regional_divergence",
-    "species": "red_bellied_woodpecker",
-    "region": "US-ME",
-    "years": [
-      2010,
-      2025
-    ],
-    "direction": "up",
-    "headline": "Red-bellied Woodpecker is rising faster in Maine than elsewhere in its range",
-    "changePerYear": 9.5,
-    "z": 7.0,
-    "score": 7.0,
-    "sufficiency": "good",
-    "confirmedBySecondSource": false
-  },
-  {
-    "id": "a_0026",
+    "id": "a_0023",
     "type": "strong_trend",
-    "species": "western_meadowlark",
-    "region": "US-IL",
+    "species": "snowy_owl",
+    "region": "US-AK",
     "years": [
       2010,
       2025
     ],
     "direction": "down",
-    "headline": "Western Meadowlark is falling fast in Illinois",
-    "changePerYear": -9.5,
+    "headline": "Snowy Owl is falling fast in Alaska",
+    "changePerYear": -11.3,
+    "z": 5.3,
+    "score": 5.3,
+    "sufficiency": "good",
+    "confirmedBySecondSource": false
+  },
+  {
+    "id": "a_0024",
+    "type": "sudden_change",
+    "species": "carolina_wren",
+    "region": "US-WI",
+    "years": [
+      2013,
+      2014
+    ],
+    "direction": "up",
+    "headline": "Carolina Wren jumped sharply in Wisconsin from 2013 to 2014",
+    "changePerYear": 7.6,
+    "z": 17.3,
+    "score": 13.0,
+    "sufficiency": "limited",
+    "confirmedBySecondSource": false
+  },
+  {
+    "id": "a_0025",
+    "type": "regional_divergence",
+    "species": "egyptian_goose",
+    "region": "US-TX",
+    "years": [
+      2010,
+      2025
+    ],
+    "direction": "up",
+    "headline": "Egyptian Goose is rising faster in Texas than elsewhere in its range",
+    "changePerYear": 16.9,
+    "z": 7.2,
+    "score": 6.7,
+    "sufficiency": "limited",
+    "confirmedBySecondSource": true
+  },
+  {
+    "id": "a_0026",
+    "type": "strong_trend",
+    "species": "western_cattle_egret",
+    "region": "US-MD",
+    "years": [
+      2010,
+      2025
+    ],
+    "direction": "down",
+    "headline": "Western Cattle Egret is falling fast in Maryland",
+    "changePerYear": -11.2,
     "z": 5.3,
     "score": 5.3,
     "sufficiency": "good",
@@ -444,68 +444,68 @@
   {
     "id": "a_0027",
     "type": "sudden_change",
-    "species": "common_myna",
-    "region": "US-FL",
+    "species": "common_buzzard",
+    "region": "GBR.3_1",
     "years": [
-      2020,
-      2020
+      2019,
+      2021
     ],
     "direction": "down",
-    "headline": "Common Myna dropped sharply in Florida in 2020",
-    "changePerYear": 0.8,
-    "z": 7.9,
-    "score": 9.9,
+    "headline": "Common Buzzard dropped sharply in Scotland, United Kingdom from 2019 to 2021",
+    "changePerYear": -4.1,
+    "z": 12.5,
+    "score": 12.5,
     "sufficiency": "good",
-    "confirmedBySecondSource": true
+    "confirmedBySecondSource": false
   },
   {
     "id": "a_0028",
     "type": "regional_divergence",
-    "species": "common_starling",
-    "region": "US-AK",
+    "species": "red_winged_blackbird",
+    "region": "MEX.30_1",
     "years": [
       2010,
       2025
     ],
-    "direction": "up",
-    "headline": "Common Starling is rising faster in Alaska than elsewhere in its range",
-    "changePerYear": 8.7,
-    "z": 6.0,
-    "score": 6.0,
-    "sufficiency": "good",
+    "direction": "down",
+    "headline": "Red-winged Blackbird is falling faster in Veracruz, M\u00e9xico than elsewhere in its range",
+    "changePerYear": -8.3,
+    "z": 9.0,
+    "score": 6.7,
+    "sufficiency": "limited",
     "confirmedBySecondSource": false
   },
   {
     "id": "a_0029",
     "type": "strong_trend",
-    "species": "carolina_wren",
-    "region": "US-ME",
+    "species": "western_cattle_egret",
+    "region": "US-IL",
     "years": [
       2010,
       2025
     ],
-    "direction": "up",
-    "headline": "Carolina Wren is rising fast in Maine",
-    "changePerYear": 11.7,
-    "z": 5.1,
-    "score": 5.1,
-    "sufficiency": "good",
+    "direction": "down",
+    "headline": "Western Cattle Egret is falling fast in Illinois",
+    "changePerYear": -14.7,
+    "z": 7.0,
+    "score": 5.2,
+    "sufficiency": "limited",
     "confirmedBySecondSource": false
   },
   {
     "id": "a_0030",
     "type": "sudden_change",
-    "species": "red_winged_blackbird",
-    "region": "CAN.3_1",
+    "species": "common_blackbird",
+    "region": "GBR.3_1",
     "years": [
-      2013,
-      2014
+      2019,
+      2021
     ],
-    "direction": "down",
-    "headline": "Red-winged Blackbird dropped sharply in Manitoba, Canada from 2013 to 2014",
-    "changePerYear": 3.5,
-    "z": 7.8,
-    "score": 9.8,
+    "direction": "up",
+    "headline": "Common Blackbird jumped sharply in Scotland, United Kingdom from 2019 to 2021",
+    "changePerYear": 2.7,
+    "z": 9.5,
+    "score": 11.9,
     "sufficiency": "good",
     "confirmedBySecondSource": true
   }

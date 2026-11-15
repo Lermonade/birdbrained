@@ -3,7 +3,7 @@
     python pipeline/fetch_gbif.py            (about 15 minutes)
 
 Writes:
-  data/static/species.json   the species: our original 8 plus the most-reported birds of each continent
+  data/static/species.json   the species: our original 8, the most-reported birds of each continent and the most-reported owls
   data/static/regions.json   every state or province with enough bird records, with a name and a center
   data/out/raw_counts.json   records per species, region and year, from eBird and iNaturalist
 
@@ -44,9 +44,11 @@ SEASON_LABEL = {"north": "May to July", "south": "October to December"}
 FIRST_YEAR = 2010
 SECOND_SOURCE_FROM = 2015  # iNaturalist is only used from this year (see compute.py)
 CONTINENTS = ["NORTH_AMERICA", "SOUTH_AMERICA", "EUROPE", "AFRICA", "ASIA", "OCEANIA"]
-PER_CONTINENT = 15  # most-reported species taken from each continent
-TARGET_SPECIES = 100
-MIN_REGION_RECORDS = 20_000  # all-bird eBird records a region needs in the latest full year to be kept
+PER_CONTINENT = 20  # most-reported species taken from each continent
+OWLS = ("owls", 1450)  # GBIF taxon key of the order Strigiformes
+OWL_SPECIES = 30  # most-reported owls worldwide, added on top of the others
+TARGET_SPECIES = 160  # including the owls
+MIN_REGION_RECORDS = 5_000  # all-bird eBird records a region needs in the latest full year to be kept
 WORKERS = 4  # GBIF answers 429 (too many requests) above this
 
 
@@ -113,7 +115,7 @@ def english_name(key: int) -> tuple[str, str]:
 
 
 def choose_species(original: list[dict]) -> list[dict]:
-    """Our original species, then the most-reported of each continent, then the world's, up to the target."""
+    """Our original species, the most-reported of each continent, the most-reported owls, then the world's."""
     chosen: dict[int, dict | None] = {s["gbifKey"]: s for s in original}
     order = [s["gbifKey"] for s in original]
     base = {"datasetKey": EBIRD, "taxonKey": ALL_BIRDS[1], "year": date.today().year - 2}
@@ -127,6 +129,12 @@ def choose_species(original: list[dict]) -> list[dict]:
                 chosen[int(key)] = None
                 order.append(int(key))
                 added += 1
+    # Owls are reported far less often than songbirds, so they are ranked over ten years, not one.
+    owls, _ = facet({**base, "taxonKey": OWLS[1], "year": f"{base['year'] - 9},{base['year']}"}, "speciesKey", 60)
+    for key in list(owls)[:OWL_SPECIES]:
+        if int(key) not in chosen:
+            chosen[int(key)] = None
+            order.append(int(key))
     world, _ = facet(base, "speciesKey", 300)
     for key in world:
         if len(order) >= TARGET_SPECIES:

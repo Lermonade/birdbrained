@@ -155,7 +155,7 @@ class AskRequest(BaseModel):
 def ask(body: AskRequest) -> dict:
     """Run the analyst on one question about a species in a region. Takes about 5 to 30 seconds.
 
-    Returns 503 with the code analyst_unavailable when Gemini fails and no saved answer exists."""
+    Returns 503 with the code analyst_unavailable when the model fails and no saved answer exists."""
     require_species(body.species)
     require_region(body.region)
     return analyst.ask(body.question, body.species, body.region, body.year, body.start, body.end)

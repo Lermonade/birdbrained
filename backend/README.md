@@ -1,6 +1,6 @@
 # BirdBrained backend
 
-A FastAPI server for the API contract in the master spec. It serves the real data in `data/out/` (eBird and iNaturalist through GBIF, 2010 to 2025), falls back to mock data for any file that is missing, and `/api/ask` runs the Gemini analyst.
+A FastAPI server for the API contract in the master spec. It serves the real data in `data/out/` (eBird and iNaturalist through GBIF, 2010 to 2025), falls back to mock data for any file that is missing, and `/api/ask` runs the AI analyst (OpenAI).
 
 As of Nov 14 the app shows raw sighting counts only; see the decision note at the top of the spec. Trends, anomalies and the analyst all work on raw sightings. The corrected index is still written to `series.json` but nothing uses it.
 
@@ -79,29 +79,26 @@ These are what the server does today. Tell the team before changing them.
 - `POST /api/ask` accepts optional `year`, `start` and `end` next to `question`, `species` and `region`. Send the same `start` and `end` as `/api/grab_data`.
 - Anomaly rules on raw sightings: *regional divergence* is a state whose sightings trend is more than 3 robust z-scores from the species' other states; *strong trend* is one more than 3 robust z-scores from every species-state; *sudden change* is a year (or run of years) that departs from the state's trend by more than 20% and 3 z-scores, after removing that year's nationwide jump (eBird's user surges) and allowing for counting noise. The first two years are not checked for sudden changes. Headlines say "sightings".
 - `GET /api/grab_data`: `species` defaults to all, `start` and `end` to the full year range. States with no records of the species in either year are left out. `changePct` is null when `startCount` is 0. `allBirdsChangePct` is the change in sightings of all birds in that state, for context.
-- `POST /api/ask` also returns `model`: the Gemini model that answered, or `null` when no model was needed.
+- `POST /api/ask` also returns `model`: the OpenAI model that answered, or `null` when no model was needed.
 - When the analyst can't answer, `POST /api/ask` returns 503 with the code `analyst_unavailable`. The frontend should show a "try again" state.
 
-## Gemini analyst
+## AI analyst (OpenAI)
 
-Put your key in `backend/.env` (git ignores this file):
+Put your key in `backend/.env` (git ignores this file). The OpenAI account needs billing set up:
 
 ```
-GEMINI_API_KEY=your-key
+OPENAI_API_KEY=your-key
 ```
 
 Without a key, `/api/ask` returns a mock answer marked "Mock answer", so the frontend can still be built.
 
 How a question is answered (`analyst.py`, with the tools in `tools.py` and the prompt in `prompts.py`):
 
-1. The server runs `check_sampling` itself. If the data is insufficient, it answers that without calling Gemini.
-2. Gemini gets the question and the 8 tools from the spec, calls the tools it wants (at most 8 calls), and returns the answer in the spec's JSON shape. Evidence that cites a tool which never ran is removed.
-3. Models are tried in the order of `GEMINI_MODELS` (default `gemini-3.8-flash,gemini-3.5-flash-lite`). A model that fails is skipped for 5 minutes. Each Gemini call times out after 15 seconds, and a question gets 30 seconds in total.
-4. Every good answer is saved in `backend/cache/` (git ignores it). If every model fails, the saved answer for the same species and state is returned with `"cached": true`. With `ANALYST_CACHE_FIRST=1`, saved answers are served before asking Gemini; use that for the live demo.
+1. The server runs `check_sampling` itself. If the data is insufficient, it answers that without calling the model.
+2. The model gets the question and the 8 tools, calls the tools it wants (at most 8 calls), and returns the answer in the spec's JSON shape, enforced by OpenAI's structured outputs. Evidence that cites a tool which never ran is removed.
+3. Models are tried in the order of `OPENAI_MODELS` (default `gpt-6.1-terra,gpt-6-luna`). A model that fails is skipped for 5 minutes. Each call times out after 20 seconds, and a question gets 45 seconds in total.
+4. Every good answer is saved in `backend/cache/` (git ignores it). If every model fails, the saved answer for the same species and state is returned with `"cached": true`. With `ANALYST_CACHE_FIRST=1`, saved answers are served before asking the model; use that for the live demo.
 
-`python check_gemini.py` tests each Flash model with one real tool call and says which ones work right now. Run it before a demo.
+`python check_openai.py` tests each model with one real tool call and says which ones work right now. Run it before a demo.
 
-Known limits as of Nov 14, 3 PM:
-
-- Google's main Flash models (`gemini-3.8-flash`, `gemini-3.7-flash`) were returning "high demand" errors or timing out at both 1:30 AM and 3 PM. `gemini-3.5-flash-lite` answers reliably in about 4 seconds. Rerun the check later; the main model may come back.
-- One question uses 3 to 4 Gemini requests. After about 5 questions in quick succession, the free tier returned a per-minute quota error, which cleared within 2 minutes. Check the exact limits at https://aistudio.google.com/rate-limit.
+The analyst used Gemini until Nov 14. It was switched because Google's Flash models kept returning "high demand" errors all day.

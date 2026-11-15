@@ -46,6 +46,7 @@ ANSWER_SCHEMA = {
             "type": "object",
             "properties": {"sufficient": {"type": "boolean"}, "note": {"type": "string"}},
             "required": ["sufficient", "note"],
+            "additionalProperties": False,
         },
         "evidence": {
             "type": "array",
@@ -53,6 +54,7 @@ ANSWER_SCHEMA = {
                 "type": "object",
                 "properties": {"claim": {"type": "string"}, "tool": {"type": "string", "enum": TOOL_NAMES}},
                 "required": ["claim", "tool"],
+                "additionalProperties": False,
             },
         },
         "hypotheses": {
@@ -66,22 +68,15 @@ ANSWER_SCHEMA = {
                     "confidence": {"type": "string", "enum": ["high", "medium", "low", "untested"]},
                 },
                 "required": ["cause", "support", "against", "confidence"],
+                "additionalProperties": False,
             },
         },
         "could_be_artifact": {"type": "string"},
         "next_steps": {"type": "array", "items": {"type": "string"}},
     },
     "required": ["summary", "data_check", "evidence", "hypotheses", "could_be_artifact", "next_steps"],
+    "additionalProperties": False,
 }
-
-# Added to the system prompt when a model can't combine tools with a JSON schema.
-JSON_INSTRUCTIONS = """
-When you have finished calling tools, reply with only a JSON object, no other text, with these keys: summary \
-(string), data_check ({sufficient: boolean, note: string}), evidence ([{claim, tool}]), hypotheses ([{cause, \
-support: [string], against: [string], confidence: "high" | "medium" | "low" | "untested"}]), could_be_artifact \
-(string), next_steps ([string]).
-"""
-
 
 def user_message(question: str, species: dict, region: dict, year: int | None,
                  start: int | None = None, end: int | None = None) -> str:

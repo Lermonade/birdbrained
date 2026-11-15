@@ -1,15 +1,13 @@
 """The analyst's tools, from the AI analyst section of the spec.
 
-Each tool reads the stored JSON and returns a small dict that is sent to Gemini
-as the tool result. `DECLARATIONS` describes them to Gemini, and `run` executes
-one call by name with whatever arguments the model sent.
+Each tool reads the stored JSON and returns a small dict that is sent to the
+model as the tool result. `declarations()` describes them to the model, and
+`run` executes one call by name with whatever arguments the model sent.
 """
 from __future__ import annotations
 
 from itertools import combinations
 from statistics import median
-
-from google.genai import types
 
 import store
 
@@ -180,8 +178,9 @@ def run(name: str, args: dict) -> dict:
         return {"error": f"Bad arguments for {name}: {exc}"}
 
 
-def declarations() -> list[types.FunctionDeclaration]:
-    """The tool list Gemini sees. Species and regions are enums so the model can only pick real ids."""
+def declarations() -> list[dict]:
+    """The tool list the model sees (OpenAI format). Species and regions are enums so the model can only
+    pick real ids."""
     species_param = {
         "type": "string",
         "enum": [s["key"] for s in store.species()],
@@ -198,9 +197,10 @@ def declarations() -> list[types.FunctionDeclaration]:
     only_region = {"type": "object", "properties": {"region": region_param}, "required": ["region"]}
     optional_both = {"type": "object", "properties": {"species": species_param, "region": region_param}}
 
-    def declare(name: str, schema: dict) -> types.FunctionDeclaration:
+    def declare(name: str, schema: dict) -> dict:
         description = " ".join(FUNCTIONS[name].__doc__.split())
-        return types.FunctionDeclaration(name=name, description=description, parameters_json_schema=schema)
+        return {"type": "function", "name": name, "description": description, "parameters": schema,
+                "strict": False}
 
     return [
         declare("check_sampling", both),

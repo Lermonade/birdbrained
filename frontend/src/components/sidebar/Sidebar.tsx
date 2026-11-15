@@ -35,7 +35,7 @@ type SidebarPage =
   | "species";
 
 interface SidebarProps {
-  /** Shown on the menu page, between the menu items and the species list. */
+  /** Shown on the menu page, below the species list. */
   templates?: ReactNode;
 }
 
@@ -189,9 +189,6 @@ export default function Sidebar({ templates }: SidebarProps) {
               />
             </button>
 
-            {/* TEMPLATES */}
-            {templates}
-
             {/* SPECIES SELECTOR */}
             <section className={styles.speciesSection}>
 
@@ -309,6 +306,9 @@ export default function Sidebar({ templates }: SidebarProps) {
               )}
 
             </section>
+
+            {/* TEMPLATES */}
+            {templates}
           </div>
         )}
 

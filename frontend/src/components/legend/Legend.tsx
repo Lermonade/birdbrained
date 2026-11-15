@@ -47,21 +47,21 @@ function layoutKey(values: number[], max: number, bottom: number) {
   return marks;
 }
 
-// The heatmap's tick values: the top of the ramp, a tenth of it and a hundredth
+// The heatmap's tick values: 0, a hundredth of the top, a tenth, and the top of the ramp
 function heatmapValues(max: number): number[] {
-  return [...new Set([max, max / 10, max / 100].map(roundNicely))];
+  return [0, ...new Set([max / 100, max / 10, max].map(roundNicely))];
 }
 
 export default function Legend({ type, maxCount, heatmapMax, basis, year }: LegendProps) {
-  const title = `${basis === "corrected" ? "Corrected sightings" : "Sightings"} in ${year}`;
+  const title = `${basis === "corrected" ? "Population" : "Sightings"} in ${year}`;
 
   if (type === VisualizationType.HEATMAP) {
     return (
       <aside className={styles.legend} aria-label="Heatmap key">
         <h2 className={styles.title}>{title}</h2>
         <div className={styles.scale}>
-          <div className={styles.ramp} style={{ backgroundImage: heatmapCss() }} />
           <div className={styles.ticks}>
+            <div className={styles.ramp} style={{ backgroundImage: heatmapCss() }} />
             {heatmapValues(heatmapMax).map(value => (
               <span
                 key={value}

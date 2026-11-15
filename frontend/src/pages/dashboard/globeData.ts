@@ -35,7 +35,7 @@ function label(name: string, color: string, region: string, count: number, year:
   return `
     <div style="color: white; padding: 6px 8px; font: 13px/1.4 system-ui, sans-serif;">
       <strong style="color: ${color}">${name}</strong><br />
-      ${region}: ${count.toLocaleString()} ${basis === "corrected" ? "corrected sightings" : "sightings"} in ${year}<br />
+      ${region}: ${count.toLocaleString()} ${basis === "corrected" ? "population" : "sightings"} in ${year}<br />
       <span style="opacity: 0.7">Click for details</span>
     </div>
   `;

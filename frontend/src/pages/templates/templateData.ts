@@ -1,11 +1,14 @@
 // The three templates: one bird each from North America, Europe and Australia, about
-// 120 degrees of longitude apart. The Templates page shows them as cards; the dashboard
-// opens on one (?template=<id>) and offers the other two as shortcuts.
+// 120 degrees of longitude apart. Two are falling and one is rising on the corrected
+// counts over 2010 to 2025: of the regions with enough records, 31 of 36 for the Eastern
+// Meadowlark and 26 of 27 for the Little Owl have shrunk, and 7 of 8 for the Australian
+// Magpie have grown. The Templates page shows them as cards; the dashboard opens on one
+// (?template=<id>) and offers the other two as shortcuts.
 
 import type { GlobeView } from "../../components/globe_visualization/GlobeVisualization";
 
-import baldEagle from "../../assets/templates/bald-eagle.jpg";
-import commonWoodPigeon from "../../assets/templates/common-wood-pigeon.jpg";
+import easternMeadowlark from "../../assets/templates/eastern-meadowlark.jpg";
+import littleOwl from "../../assets/templates/little-owl.jpg";
 import australianMagpie from "../../assets/templates/australian-magpie.jpg";
 
 export interface BirdTemplate {
@@ -29,34 +32,34 @@ export interface BirdTemplate {
 
 export const TEMPLATES: BirdTemplate[] = [
   {
-    id: "bald-eagle",
-    speciesKey: "bald_eagle",
-    species: "Bald Eagle",
+    id: "eastern-meadowlark",
+    speciesKey: "eastern_meadowlark",
+    species: "Eastern Meadowlark",
     region: "North America",
     startYear: 2010,
     endYear: 2025,
     view: { lat: 39.5, lng: -98.5, altitude: 1.7 },
-    imageUrl: baldEagle,
+    imageUrl: easternMeadowlark,
     imageAlt:
-      "A Bald Eagle with its wings half open, perched on a weathered stump in front of a snowy mountain",
-    credit: "Andy Morffew, CC BY 2.0",
+      "An Eastern Meadowlark standing in dry grass, its bright yellow breast and black necklace facing the camera",
+    credit: "Nosferattus, CC0",
     creditUrl:
-      "https://commons.wikimedia.org/wiki/File:Bald_eagle_about_to_fly_in_Alaska_(2016).jpg",
+      "https://commons.wikimedia.org/wiki/File:Eastern_Meadowlark_Sturnella_magna_02.jpg",
   },
   {
-    id: "common-wood-pigeon",
-    speciesKey: "common_wood_pigeon",
-    species: "Common Wood Pigeon",
+    id: "little-owl",
+    speciesKey: "little_owl",
+    species: "Little Owl",
     region: "Europe",
     startYear: 2010,
     endYear: 2025,
     view: { lat: 49, lng: 10, altitude: 1.7 },
-    imageUrl: commonWoodPigeon,
+    imageUrl: littleOwl,
     imageAlt:
-      "A Common Wood Pigeon perched on a branch, showing its white neck patch and orange bill",
-    credit: "Romzig, CC0",
+      "A Little Owl with bright yellow eyes peering out from a dark gap between two slabs of concrete",
+    credit: "Hobbyfotowiki, CC0",
     creditUrl:
-      "https://commons.wikimedia.org/wiki/File:Ringeltaube_(April_2025).jpg",
+      "https://commons.wikimedia.org/wiki/File:Little_owl_(Athene_noctua),.jpg",
   },
   {
     id: "australian-magpie",

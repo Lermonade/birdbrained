@@ -67,24 +67,27 @@
   padding: 0 0.75rem;
 }
 
-/* Numbers sit under their tick mark, where their color falls on the ramp */
+/* The ramp with its tick marks across it, each number under its mark, where its
+   color falls on the ramp */
 .ticks {
   position: relative;
   width: 150px;
-  height: 1.5rem;
+  padding-bottom: 1.3rem;
 }
 
 .tick {
   position: absolute;
-  top: 0;
+  top: -2px;
   width: 1px;
-  height: 4px;
-  background: var(--ink-dim);
+  height: 14px;
+  margin-left: -0.5px;
+  background: var(--ink);
+  box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.35);
 }
 
 .tickLabel {
   position: absolute;
-  top: 6px;
+  top: 16px;
   left: 50%;
   transform: translateX(-50%);
   color: var(--ink-dim);

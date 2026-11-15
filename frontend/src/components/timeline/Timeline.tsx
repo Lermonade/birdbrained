@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type CSSProperties, type PointerEvent } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type MouseEvent, type PointerEvent } from "react";
 import { GripHorizontal, Pause, Play } from "lucide-react";
 
 import styles from "./timeline.module.css";
@@ -26,6 +26,7 @@ export default function Timeline({ years, start, end, onChange, playing, onPlayi
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [dragging, setDragging] = useState(false);
   const bar = useRef<HTMLElement | null>(null);
+  const rail = useRef<HTMLDivElement | null>(null);
   const grab = useRef<{ px: number; py: number; from: { x: number; y: number }; minX: number; maxX: number; minY: number; maxY: number } | null>(null);
 
   function startDrag(e: PointerEvent<HTMLButtonElement>) {
@@ -115,6 +116,27 @@ export default function Timeline({ years, start, end, onChange, playing, onPlayi
     "--to": `${((end - first) / span) * 100}%`,
   } as CSSProperties;
 
+  // Clicking a year on the bar takes the globe there: that year becomes the "to" year. If
+  // it's at or before the "from" year, "from" steps back to just before it.
+  function jumpTo(e: MouseEvent<HTMLElement>) {
+    // The thumbs are real sliders and handle their own clicks
+    if (e.target instanceof HTMLInputElement) return;
+
+    const rect = rail.current?.getBoundingClientRect();
+    if (!rect || rect.width === 0) return;
+
+    const along = Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width));
+    const year = Math.round(first + along * span);
+
+    onPlayingChange(false);
+    if (year > start) {
+      onChange(start, year);
+    } else {
+      const from = Math.max(first, year - 1);
+      onChange(from, Math.max(year, from + 1));
+    }
+  }
+
   return (
     <section
       ref={bar}
@@ -156,8 +178,8 @@ export default function Timeline({ years, start, end, onChange, playing, onPlayi
           </span>
           <span className={styles.year}>{end}</span>        </p>
 
-        <div className={styles.track} style={fill}>
-          <div className={styles.rail} aria-hidden="true">
+        <div className={styles.track} style={fill} onClick={jumpTo}>
+          <div ref={rail} className={styles.rail} aria-hidden="true">
             <div className={styles.range} />
             {years.map(year => (
               <span
@@ -194,7 +216,7 @@ export default function Timeline({ years, start, end, onChange, playing, onPlayi
           />
         </div>
 
-        <div className={styles.labels} aria-hidden="true">
+        <div className={styles.labels} aria-hidden="true" onClick={jumpTo}>
           {years
             .filter(year => year === first || year === last || (year % 5 === 0 && last - year >= 2 && year - first >= 2))
             .map(year => (

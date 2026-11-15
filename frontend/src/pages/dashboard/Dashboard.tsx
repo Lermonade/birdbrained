@@ -34,21 +34,6 @@ const DEFAULT_SIDEBAR_WIDTH = 320;
 
 const NO_DATASETS: DataSet[] = [];
 
-// Silas's placeholder birds. They're always in the sidebar's species search, even
-// without the backend, and show sample points on the globe. The real species follow them.
-const PLACEHOLDER_SPECIES = [
-  { name: "Robin", sightings: 1248 },
-  { name: "Kingfisher", sightings: 856 },
-  { name: "Bluebird", sightings: 634 },
-  { name: "Barn Owl", sightings: 921 },
-  { name: "Goldfinch", sightings: 1450 },
-  { name: "Woodpecker", sightings: 782 },
-  { name: "Blackbird", sightings: 1102 },
-  { name: "Sparrow", sightings: 1875 },
-  { name: "Hummingbird", sightings: 542 },
-  { name: "Eagle", sightings: 318 },
-];
-
 // The detail panel waits this long after the years stop moving before it refetches
 const PANEL_FETCH_DELAY_MS = 250;
 
@@ -70,7 +55,6 @@ function DashboardContent() {
     settings,
     allSpecies,
     selectedSpeciesIds,
-    speciesData,
     updateSpeciesList,
     addSelectedSpecies,
   } = useContextSettings();
@@ -113,12 +97,10 @@ function DashboardContent() {
   }
 
   // Regions, species and every species' sightings per year, once (three requests).
-  // The sidebar numbers species 1, 2, 3... in list order: the placeholders first,
+  // The sidebar numbers species 1, 2, 3... in the backend's list order.
   // so their numbers stay the same when the backend's species are added after them.
   useEffect(() => {
     let cancelled = false;
-
-    updateSpeciesList(PLACEHOLDER_SPECIES);
 
     Promise.all([api.regions(), api.species(), api.counts()])
       .then(([regionsResult, speciesResult, countsResult]) => {
@@ -130,11 +112,10 @@ function DashboardContent() {
         setRange({ start: countsResult.years[0], end: countsResult.years[countsResult.years.length - 1] });
 
         updateSpeciesList([
-          ...PLACEHOLDER_SPECIES,
           ...speciesResult.map(s => ({ name: s.commonName, sightings: sightings(countsResult.species[s.key]) })),
         ]);
         const defaultIndex = speciesResult.findIndex(s => s.key === DEFAULT_SPECIES);
-        void addSelectedSpecies(PLACEHOLDER_SPECIES.length + (defaultIndex === -1 ? 0 : defaultIndex) + 1);
+        void addSelectedSpecies((defaultIndex === -1 ? 0 : defaultIndex) + 1);
       })
       .catch((e: Error) => {
         if (!cancelled) setError(e.message);
@@ -146,32 +127,24 @@ function DashboardContent() {
   }, [updateSpeciesList, addSelectedSpecies]);
 
   // The globe shows every species selected in the sidebar, each in its sidebar color.
-  // Sidebar ids count the placeholders first, then the backend's species in catalog order.
+  // Sidebar ids are 1-based positions in the backend catalog.
   const datasets = useMemo(() => {
     const real: SpeciesSightings[] = [];
-    const placeholders: DataSet[] = [];
 
     for (const id of selectedSpeciesIds) {
       const species = allSpecies.find(s => s.id === id);
       if (!species) continue;
 
-      if (id <= PLACEHOLDER_SPECIES.length) {
-        const points = speciesData.find(d => d.speciesId === id)?.dataPoints;
-        if (points) placeholders.push({ name: species.name, color: species.color, dataPoints: points });
-        continue;
-      }
-
-      const key = catalog[id - PLACEHOLDER_SPECIES.length - 1]?.key;
+      const key = catalog[id - 1]?.key;
       const perRegion = key ? counts?.species[key] : undefined;
       if (key && perRegion) real.push({ key, name: species.name, color: species.color, counts: perRegion });
     }
 
     const yearIndex = counts && range ? counts.years.indexOf(range.end) : -1;
     const shown = yearIndex === -1 || !range ? NO_DATASETS : toDatasets(real, regions, yearIndex, range.end);
-    return [...shown, ...placeholders];
-  }, [selectedSpeciesIds, allSpecies, speciesData, catalog, counts, regions, range]);
+    return shown;
+  }, [selectedSpeciesIds, allSpecies, catalog, counts, regions, range]);
 
-  const hasPlaceholder = selectedSpeciesIds.some(id => id <= PLACEHOLDER_SPECIES.length);
   const loading = catalog.length === 0 && error === null;
 
   const handlePointClick = useCallback((point: DataPoint) => {
@@ -210,7 +183,7 @@ function DashboardContent() {
   const selectedGrab =
     selected && panelGrab?.species[0]?.key === selected.speciesKey ? panelGrab : undefined;
   const selectedSpeciesId = selected
-    ? catalog.findIndex(s => s.key === selected.speciesKey) + PLACEHOLDER_SPECIES.length + 1
+    ? catalog.findIndex(s => s.key === selected.speciesKey) + 1
     : undefined;
   const panelOpen =
     selected !== null &&
@@ -339,9 +312,9 @@ function DashboardContent() {
         />
 
         <div className={styles.overlays}>
-          {!intro && !hasPlaceholder && loading && <div className={styles.status}>Loading data...</div>}
+          {!intro && loading && <div className={styles.status}>Loading data...</div>}
 
-          {!intro && !hasPlaceholder && error && (
+          {!intro && error && (
             <div className={styles.errorCard} role="alert">
               <strong>Can't load the data.</strong>
               <p>{error}</p>

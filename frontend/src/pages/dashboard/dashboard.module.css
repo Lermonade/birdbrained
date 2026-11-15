@@ -1,70 +1,121 @@
 .dashboard {
-  display: grid;
+  position: relative;
   width: 100%;
-  height: calc(100dvh - 56px);
+  height: 100dvh;
+  padding-top: var(--nav-h); /* the navbar floats over this */
   overflow: hidden;
   background: #000011;
+  transition: padding-top 0.6s ease;
 }
 
-.dashboard > aside {
-  min-width: 0;
-  overflow: hidden;
+/* Landing up: the globe runs under the transparent navbar */
+.intro {
+  padding-top: 0;
 }
 
-/* Sidebar */
-.sidebar {
-  min-width: 0;
-  height: 100%;
-  box-sizing: border-box;
-  padding: 1.5rem;
-  overflow-y: auto;
-  background-color: var(--bg);
-  color: var(--text);
-}
-
-/* Divider */
-.resizeHandle {
-  position: relative;
-  height: 100%;
-  background: var(--bg);
-  cursor: col-resize;
-  touch-action: none;
-  transition: background-color 0.15s ease;
-  z-index: 2;
-}
-
-/* Larger invisible hit area */
-.resizeHandle::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: -5px;
-  right: -5px;
-}
-
-.resizeHandle:hover,
-.resizeHandle:focus-visible {
-  background-color: var(--accent);
-  outline: none;
-}
-
-/* Globe viewport */
+/* Globe viewport. The landing slides, scales and fades it through these variables
+   as you scroll; on the dashboard they're unset and it sits still. */
 .visualization {
   position: relative;
-  min-width: 0;
-  min-height: 0;
+  width: 100%;
   height: 100%;
   overflow: hidden;
+  opacity: var(--globe-opacity, 1);
+  transform: translateY(var(--globe-y, 0)) scale(var(--globe-scale, 1));
 }
 
-/* Disable text selection while dragging */
-.dragging {
-  cursor: col-resize;
-  user-select: none;
+/* Until the landing has placed it, keep the globe out of sight below the screen */
+.intro .visualization {
+  transform: translateY(var(--globe-y, 110%)) scale(var(--globe-scale, 1));
 }
 
-.dragging * {
-  cursor: col-resize !important;
-  user-select: none !important;
+/* Legend over the globe */
+.legend {
+  position: absolute;
+  left: 16px;
+  bottom: 16px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  max-width: calc(100% - 32px);
+  padding: 0.7rem 0.9rem;
+  border-radius: 8px;
+  background: rgba(0, 0, 17, 0.72);
+  color: #ffffff;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  pointer-events: none;
+}
+
+.legendMode,
+.legendNote {
+  opacity: 0.8;
+  font-size: 0.8rem;
+}
+
+.legendRow {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.swatch {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+}
+
+.swatch:not(:first-child) {
+  margin-left: 0.6rem;
+}
+
+/* Loading and errors */
+.status {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  z-index: 2;
+  transform: translateX(-50%);
+  padding: 0.4rem 0.8rem;
+  border-radius: 999px;
+  background: rgba(0, 0, 17, 0.72);
+  color: #ffffff;
+  font-size: 0.85rem;
+}
+
+.errorCard {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: min(420px, calc(100% - 32px));
+  padding: 1rem 1.2rem;
+  border-radius: 10px;
+  background: var(--bg);
+  color: var(--text);
+  box-shadow: var(--shadow);
+  font-size: 0.9rem;
+  transform: translate(-50%, -50%);
+}
+
+.errorCard code {
+  font-family: var(--mono);
+  font-size: 0.85em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dashboard {
+    transition: none;
+  }
+
+  /* No slide-in: the landing fades the globe in where it stands */
+  .intro .visualization {
+    opacity: var(--globe-opacity, 0);
+    transform: none;
+  }
 }

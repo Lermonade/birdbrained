@@ -16,6 +16,10 @@
   --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
   --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
   --mono: ui-monospace, Consolas, monospace;
+  --display: 'Bagel Fat One', var(--sans);
+
+  /* Navbar height; the dashboard sits under it */
+  --nav-h: 64px;
 
   font: 18px/145% var(--sans);
   letter-spacing: 0.18px;
@@ -29,6 +33,11 @@
 
   @media (max-width: 1024px) {
     font-size: 16px;
+  }
+
+  /* The navbar stacks into a column on phones */
+  @media (max-width: 600px) {
+    --nav-h: 168px;
   }
 }
 

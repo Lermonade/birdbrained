@@ -4,11 +4,22 @@ import styles from "./navbar.module.css";
 import logo from "../../assets/birdbrained_logo.png";
 
 export default function Navbar() {
-  const location = useLocation();
-  const hasBackground = location.pathname === "/dashboard";
+  const { pathname } = useLocation();
+  // "/" and "/dashboard" share the globe; the navbar floats over it on both
+  const onLanding = pathname === "/";
+  const onDashboard = pathname === "/dashboard";
+
+  const className = [
+    styles.navbar,
+    onLanding || onDashboard ? styles.overGlobe : "",
+    onLanding ? styles.onLanding : "",
+    onDashboard ? styles.withBackground : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   return (
-    <nav className={`${styles.navbar} ${hasBackground ? styles.withBackground : ""}`}>
+    <nav className={className}>
       <NavLink to="/" className={styles.logo}>
         <img
           src={logo}

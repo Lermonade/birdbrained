@@ -1,0 +1,238 @@
+/* The landing is one pinned scene over the live globe. Landing.tsx moves the
+   pieces by writing styles straight onto them as you scroll. */
+.landing {
+  --night: #000011;
+  --paper: #f7f5ef;
+  --paper-dim: rgba(247, 245, 239, 0.78);
+
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  color: var(--paper);
+}
+
+.landing[data-state="gone"] {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* Stars behind the globe; stays on the dashboard too */
+.starfield {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.scroller {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  outline: none;
+  scrollbar-width: none;
+}
+
+.scroller::-webkit-scrollbar {
+  display: none;
+}
+
+/* Its extra height is the length of the scroll */
+.track {
+  height: 420%;
+}
+
+.stage {
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100dvh;
+  padding: var(--nav-h) 5vw 0;
+  overflow: hidden;
+  text-align: center;
+}
+
+/* Title */
+.title {
+  font-family: var(--display);
+  font-size: clamp(3rem, 11.5vw, 11.5rem);
+  font-weight: 400;
+  line-height: 0.95;
+  white-space: nowrap;
+}
+
+/* Landing.tsx lifts each letter away as you scroll */
+.letter {
+  display: inline-block;
+  will-change: transform, opacity;
+}
+
+/* On load the letters rise into place, one after another */
+.glyph {
+  display: inline-block;
+  animation: rise 0.7s cubic-bezier(0.2, 0.9, 0.3, 1.25) both;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(0.45em) rotate(5deg);
+  }
+}
+
+.subheading {
+  max-width: 46rem;
+  margin-top: 1.25rem;
+  color: var(--paper-dim);
+  font-size: clamp(1rem, 0.6vw + 0.85rem, 1.3rem);
+  line-height: 1.5;
+  text-wrap: balance;
+  animation: appear 0.6s ease 0.65s backwards;
+}
+
+@keyframes appear {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Bird. Landing.tsx sets its transform, opacity, --perched, --flap and --facing. */
+.bird {
+  --bird: clamp(52px, 6vw, 100px);
+
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  width: 0;
+  height: 0;
+  color: var(--paper);
+  pointer-events: none;
+  will-change: transform;
+}
+
+.perchedArt,
+.flyingArt,
+.sprite {
+  position: absolute;
+  top: 0;
+  left: 0;
+  max-width: none; /* the bird's own box has no width; don't shrink the art to fit it */
+  overflow: visible;
+  fill: currentColor;
+}
+
+/* Sitting: anchored by its feet. It flies in and lands once the title is up. */
+.perchedArt {
+  width: calc(var(--bird) * 0.62);
+  opacity: var(--perched, 1);
+  transform: translate(-50%, -100%) scaleX(var(--facing, 1));
+  animation: land 0.9s cubic-bezier(0.2, 0.8, 0.3, 1) 0.8s backwards;
+}
+
+@keyframes land {
+  from {
+    opacity: 0;
+    translate: 90px -130px;
+  }
+  70% {
+    translate: 0 5px;
+  }
+}
+
+.hop .perchedArt,
+.hop .sprite {
+  animation: hop 0.4s ease;
+}
+
+@keyframes hop {
+  40% {
+    translate: 0 -14px;
+  }
+}
+
+.legs {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+}
+
+.eye {
+  fill: var(--night);
+}
+
+/* Flying: anchored by its middle */
+.flyingArt {
+  width: var(--bird);
+  opacity: calc(1 - var(--perched, 1));
+  transform: translate(-50%, -50%);
+}
+
+/* A wing beat seen from above: the wings shorten toward the body and open again */
+.wing {
+  transform: scaleY(calc(1 - 0.6 * var(--flap, 0)));
+  transform-origin: 0 0;
+}
+
+/* Team art: one frame of the sheet shows at a time; see birdArt.ts */
+.sprite {
+  width: var(--bird);
+  background-repeat: no-repeat;
+  background-position: var(--frame, 0%) 0;
+  transform: translate(-50%, -50%) scaleX(var(--facing, 1));
+}
+
+/* Scroll cue; clicking it plays the flight */
+.cue {
+  position: absolute;
+  bottom: 2rem;
+  left: 50%;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.5rem 0.75rem;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  color: var(--paper-dim);
+  font-size: 0.95rem;
+  transform: translateX(-50%);
+  animation: appear 0.6s ease 1.6s backwards;
+}
+
+.cue:hover {
+  color: var(--paper);
+}
+
+.cue:focus-visible {
+  outline: 2px solid var(--paper);
+  outline-offset: 2px;
+}
+
+.cueArrow {
+  animation: nudge 1.8s ease-in-out infinite;
+}
+
+@keyframes nudge {
+  50% {
+    transform: translateY(5px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glyph,
+  .subheading,
+  .perchedArt,
+  .hop .perchedArt,
+  .hop .sprite,
+  .cue,
+  .cueArrow {
+    animation: none;
+  }
+}

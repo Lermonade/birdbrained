@@ -1,6 +1,5 @@
 import { BrowserRouter, Routes, Route } from "react-router";
 
-import Home from "./pages/home/Home";
 import Dashboard from "./pages/dashboard/Dashboard";
 import Templates from "./pages/templates/Templates";
 import About from "./pages/about/About";
@@ -14,8 +13,12 @@ function App() {
       <Navbar />
 
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/dashboard" element={<Dashboard />} />
+        {/* One Dashboard for both paths, so the globe stays mounted:
+            "/" shows the landing over it, "/dashboard" the controls. */}
+        <Route element={<Dashboard />}>
+          <Route index />
+          <Route path="dashboard" />
+        </Route>
         <Route path="/templates" element={<Templates />} />
         <Route path="/about" element={<About />} />
         <Route path="*" element={<NotFound />} />

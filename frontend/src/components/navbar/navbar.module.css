@@ -1,36 +1,35 @@
+.navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: var(--nav-h);
+  padding: 0 3rem;
+  background-color: transparent;
+  border-bottom: 2px solid transparent;
+  width: 100%;
+  box-sizing: border-box;
+  transition:
+    background-color 0.6s ease,
+    border-color 0.6s ease;
+}
+
 .logo {
   display: flex;
   align-items: center;
   gap: 0.25rem;
   font-size: 1.5rem;
-  font-weight: 800;
+  font-weight: 500;
   color: var(--text);
   text-decoration: none;
   letter-spacing: -0.5px;
+  transition: color 0.6s ease;
 }
 
 .logoImage {
   width: 36px;
   height: 36px;
   object-fit: contain;
-}
-
-.navbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1rem 3rem;
-  background-color: transparent;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.logo {
-  font-size: 1.5rem;
-  font-weight: 500;
-  color: var;
-  text-decoration: none;
-  letter-spacing: -0.5px;
+  transition: filter 0.6s ease;
 }
 
 .navLinks {
@@ -60,7 +59,7 @@
   background-color: var(--accent);
   color: #ffffff;
   text-decoration: none;
-  padding: 0.7rem 1.4rem;
+  padding: 0.55rem 1.2rem;
   border-radius: 8px;
   font-size: 0.95rem;
   font-weight: 600;
@@ -74,14 +73,40 @@
 
 .withBackground {
   background-color: var(--bg);
-  border-bottom: 2px solid #000;
+  border-bottom-color: #000;
+}
+
+/* Floats over the globe on "/" and "/dashboard" */
+.overGlobe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 20;
+}
+
+/* Light on the dark globe while the landing is up */
+.onLanding .logo,
+.onLanding .navLink {
+  color: var(--bg);
+}
+
+.onLanding .logoImage {
+  filter: invert(1);
+}
+
+.onLanding .navLink:hover {
+  color: #ffffff;
+  text-decoration: underline;
+  text-underline-offset: 6px;
 }
 
 /* Mobile */
 @media (max-width: 600px) {
   .navbar {
-    padding: 1rem;
+    padding: 0 1rem;
     flex-direction: column;
+    justify-content: center;
     gap: 1rem;
   }
 

@@ -1,5 +1,5 @@
 
-import { useEffect, useRef } from "react";
+import { useEffect, useImperativeHandle, useRef, type Ref } from "react";
 import Globe from "globe.gl";
 import * as THREE from "three";
 import styles from "./globe_visualization.module.css";
@@ -9,6 +9,8 @@ export interface DataPoint {
   lng: number;
   height: number;
   population?: number;
+  id?: string; // passed back to onPointClick, e.g. a state id
+  label?: string; // HTML shown on hover instead of the default label
 }
 
 export interface DataSet {
@@ -35,10 +37,35 @@ export const EarthType = {
 export type EarthType =
   (typeof EarthType)[keyof typeof EarthType];
 
+export interface GlobeView {
+  lat: number;
+  lng: number;
+  altitude?: number;
+}
+
 interface GlobeVisualizationProps {
   datasets: DataSet[];
   visualizationType: VisualizationType;
   earthType: EarthType;
+  onPointClick?: (point: DataPoint) => void;
+  focus?: GlobeView | null; // the camera flies here whenever this changes
+  transparentBackground?: boolean; // no space backdrop, so the page shows through
+  ref?: Ref<GlobeHandle>;
+}
+
+// Direct controls, for animation that can't wait for a React render
+export interface GlobeHandle {
+  setView: (view: GlobeView) => void; // move the camera at once, no flight
+  screenPoint: (lat: number, lng: number) => { x: number; y: number } | null; // px inside the globe's box
+  ripple: (lat: number, lng: number) => void; // rings spreading from a spot
+  // Stop drawing while the globe is out of sight. False if the globe isn't ready yet.
+  setPaused: (paused: boolean) => boolean;
+}
+
+interface Ring {
+  lat: number;
+  lng: number;
+  speed: number;
 }
 
 interface GlobePoint extends DataPoint {
@@ -52,6 +79,21 @@ interface GlobePoint extends DataPoint {
 
 const EARTH_TEXTURE =
   "https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg";
+
+const NIGHT_SKY =
+  "https://unpkg.com/three-globe/example/img/night-sky.png";
+
+// Pillars grow out of the surface over this long, in ms
+const PILLAR_GROW_DURATION = 900;
+
+// Ripple rings: degrees per second for each ring, and how far they spread
+const RIPPLE_SPEEDS = [4, 7, 11];
+const RIPPLE_RADIUS = 9;
+
+const NO_DATASETS: DataSet[] = [];
+
+// How long a camera flight takes, in ms
+const FLY_DURATION = 1000;
 
 // Equirectangular texture resolution
 const HEATMAP_WIDTH = 4096;
@@ -440,9 +482,19 @@ export default function GlobeVisualization({
   datasets,
   visualizationType,
   earthType,
+  onPointClick,
+  focus,
+  transparentBackground = false,
+  ref,
 }: GlobeVisualizationProps) {
   const globeContainer = useRef<HTMLDivElement | null>(null);
   const globeRef = useRef<InstanceType<typeof Globe> | null>(null);
+  const onPointClickRef = useRef(onPointClick);
+
+  // Keep the latest click handler without re-registering it on the globe
+  useEffect(() => {
+    onPointClickRef.current = onPointClick;
+  }, [onPointClick]);
 
   // Initialize globe once
   useEffect(() => {
@@ -451,11 +503,12 @@ export default function GlobeVisualization({
 
     const globe = new Globe(container)
       .globeImageUrl("")
-      .backgroundColor("#000011")
-      .backgroundImageUrl(
-        "https://unpkg.com/three-globe/example/img/night-sky.png"
-      )
-      .showAtmosphere(false);
+      .showAtmosphere(false)
+      .pointsTransitionDuration(PILLAR_GROW_DURATION)
+      .ringColor(() => (t: number) => `rgba(247, 245, 239, ${1 - t})`)
+      .ringMaxRadius(RIPPLE_RADIUS)
+      .ringPropagationSpeed((d: object) => (d as Ring).speed)
+      .ringRepeatPeriod(0); // one ring each, no repeats
 
     globe.pointOfView(
       { lat: 20, lng: 0, altitude: 2.3 },
@@ -463,6 +516,8 @@ export default function GlobeVisualization({
     );
 
     globe.controls().autoRotate = false;
+
+    globe.onPointClick((d: object) => onPointClickRef.current?.(d as GlobePoint));
 
     globeRef.current = globe;
 
@@ -481,18 +536,77 @@ export default function GlobeVisualization({
     };
   }, []);
 
+  // Space backdrop, or none so the page behind shows through
+  useEffect(() => {
+    const globe = globeRef.current;
+    if (!globe) return;
+
+    globe
+      .backgroundColor(transparentBackground ? "rgba(0, 0, 0, 0)" : "#000011")
+      .backgroundImageUrl(transparentBackground ? null : NIGHT_SKY);
+  }, [transparentBackground]);
+
+  useImperativeHandle(
+    ref,
+    () => {
+      let clearRipple: ReturnType<typeof setTimeout> | undefined;
+
+      return {
+        setView(view) {
+          globeRef.current?.pointOfView(
+            { lat: view.lat, lng: view.lng, altitude: view.altitude ?? 1.4 },
+            0
+          );
+        },
+
+        screenPoint(lat, lng) {
+          return globeRef.current?.getScreenCoords(lat, lng, 0) ?? null;
+        },
+
+        setPaused(paused) {
+          const globe = globeRef.current;
+          if (!globe) return false;
+
+          if (paused) globe.pauseAnimation();
+          else globe.resumeAnimation();
+          return true;
+        },
+
+        ripple(lat, lng) {
+          const globe = globeRef.current;
+          if (!globe) return;
+
+          const rings: Ring[] = RIPPLE_SPEEDS.map(speed => ({ lat, lng, speed }));
+          globe.ringsData(rings);
+
+          // Take the rings away once the slowest has faded out
+          clearTimeout(clearRipple);
+          clearRipple = setTimeout(
+            () => globeRef.current?.ringsData([]),
+            (RIPPLE_RADIUS / Math.min(...RIPPLE_SPEEDS)) * 1000
+          );
+        },
+      };
+    },
+    []
+  );
+
+  // Only a heatmap is painted onto the Earth texture. For anything else the
+  // texture doesn't depend on the data, so new data doesn't redraw it.
+  const isHeatmap =
+    visualizationType === VisualizationType.HEATMAP ||
+    visualizationType === VisualizationType.MULTICOLOR_HEATMAP;
+  const heatmapDatasets = isHeatmap ? datasets : NO_DATASETS;
+
   // Update Earth and heatmap texture
   useEffect(() => {
     const globe = globeRef.current;
     if (!globe) return;
 
-    const isHeatmap =
-      visualizationType === VisualizationType.HEATMAP ||
-      visualizationType === VisualizationType.MULTICOLOR_HEATMAP;
-
-    const heatmapOverlay = isHeatmap
-      ? generateHeatmapOverlay(datasets, visualizationType)
-      : null;
+    const heatmapOverlay =
+      heatmapDatasets.length > 0
+        ? generateHeatmapOverlay(heatmapDatasets, visualizationType)
+        : null;
 
     let cancelled = false;
     let earthTexture: THREE.CanvasTexture | null = null;
@@ -547,7 +661,7 @@ export default function GlobeVisualization({
       material?.dispose();
       earthTexture?.dispose();
     };
-  }, [datasets, visualizationType, earthType]);
+  }, [heatmapDatasets, visualizationType, earthType]);
 
   // Update data visualization
   useEffect(() => {
@@ -576,7 +690,7 @@ export default function GlobeVisualization({
         .pointLabel((d: object) => {
           const point = d as GlobePoint;
 
-          return `${point.name}: ${point.lat}, ${point.lng}`;
+          return point.label ?? `${point.name}: ${point.lat}, ${point.lng}`;
         })
         .pointsData(points);
     }
@@ -590,6 +704,8 @@ export default function GlobeVisualization({
         .pointColor((d: object) => (d as GlobePoint).color)
         .pointLabel((d: object) => {
           const point = d as GlobePoint;
+
+          if (point.label) return point.label;
 
           return `
             <div style="color: white; padding: 5px;">
@@ -607,6 +723,18 @@ export default function GlobeVisualization({
     }
 
   }, [datasets, visualizationType]);
+
+  // Fly the camera to a new view
+  useEffect(() => {
+    const globe = globeRef.current;
+    if (!globe || !focus) return;
+
+    globe.pointOfView(
+      { lat: focus.lat, lng: focus.lng, altitude: focus.altitude ?? 1.4 },
+      FLY_DURATION
+    );
+  }, [focus]);
+
 
   return (
     <div

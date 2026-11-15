@@ -19,6 +19,10 @@ export default function Navbar() {
       </NavLink>
 
       <div className={styles.navLinks}>
+        <NavLink to="/" className={styles.navLink}>
+          Home
+        </NavLink>
+
         <NavLink to="/dashboard" className={styles.navLink}>
           Dashboard
         </NavLink>

@@ -16,7 +16,7 @@ pip install -r requirements.txt
 uvicorn main:app --port 8000
 ```
 
-For the AI analyst, put a Gemini API key in `backend/.env` as `GEMINI_API_KEY=your-key` (free from Google AI Studio). Without it, the analyst returns a placeholder answer. Open http://localhost:8000/docs to try every endpoint.
+For the AI analyst, put an OpenAI API key in `backend/.env` as `OPENAI_API_KEY=your-key` (from platform.openai.com; the account needs billing set up). Without it, the analyst returns a placeholder answer. Open http://localhost:8000/docs to try every endpoint.
 
 **2. Frontend** (http://localhost:5173)
 
@@ -28,18 +28,18 @@ npm run dev
 
 Then open http://localhost:5173. The frontend expects the backend at http://localhost:8000.
 
-The data is already in the repo (`data/out/`), so nothing is downloaded at startup. An internet connection is still needed for the analyst (Gemini) and for the globe's images. To rebuild the data, see `backend/README.md`.
+The data is already in the repo (`data/out/`), so nothing is downloaded at startup. An internet connection is still needed for the analyst (OpenAI) and for the globe's images. To rebuild the data, see `backend/README.md`.
 
 ## Data sources
 
 - **eBird** (Cornell Lab of Ornithology) and **iNaturalist** research-grade observations, through the [GBIF API](https://www.gbif.org/): bird records per state, May to July, 2010 to 2025.
 - **USGS North American Breeding Bird Survey**, analysis results 1966 to 2024: state trends for 2014 to 2024.
 - **NOAA NCEI nClimDiv**: statewide monthly temperature and rainfall.
-- **Google Gemini API**: the analyst.
+- **OpenAI API**: the analyst.
 
 ## Limits
 
-- The map shows sightings, not birds. Sightings grow with the number of people birding: eBird records of all birds grew about 10x from 2010 to 2025. Each state's change in all-bird sightings is shown next to each species for context.
+- The map shows each bird's share of all sightings, corrected for the growth in birders (eBird records of all birds grew about 10x from 2010 to 2025). It is a relative trend, not a head count, and it shifts if birders change what they report. States where the trend is not statistically clear are flagged.
 - 8 species, US states only, breeding season (May to July) only.
 - Climate data is a statewide average; the District of Columbia uses Maryland's.
 - The analyst's causes are hypotheses, each with its evidence and a confidence level.

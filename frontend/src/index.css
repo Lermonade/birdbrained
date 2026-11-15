@@ -2,6 +2,7 @@
   --text: #000000;
   --text-h: #08060d;
   --text-accent: #527C68;
+  --border-radius: 8px;
 
   --bg: #F7F5EF;
   --border: #e5e4e7;
@@ -78,4 +79,121 @@ button {
 a {
   color: inherit;
   text-decoration: none;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+}
+
+.app {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+.content {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Universal dropdown */
+.select-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  width: 100%;
+  margin-bottom: 0.85rem;
+}
+
+.select-field label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.select-field select {
+  width: 100%;
+  height: 38px;
+  padding: 0 0.75rem;
+
+  border: 1px solid #aaa99f;
+  border-radius: 6px;
+
+  background-color: var(--bg);
+  color: var(--text);
+
+  font-family: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+
+  appearance: auto;
+  outline: none;
+  box-shadow: none;
+  transition: none;
+}
+
+.select-field select:hover,
+.select-field select:focus,
+.select-field select:active {
+  border: 1px solid #aaa99f;
+  outline: none;
+  box-shadow: none;
+}
+
+.select-field select option {
+  background: var(--bg);
+  color: var(--text);
+}
+
+
+/* Date and time inputs */
+.select-field input[type="date"],
+.select-field input[type="time"] {
+  width: 100%;
+  height: 38px;
+  padding: 0 0.75rem;
+
+  border: 1px solid #aaa99f;
+  border-radius: 6px;
+
+  background-color: var(--bg);
+  color: var(--text);
+
+  font-family: inherit;
+  font-size: 0.85rem;
+
+  outline: none;
+  box-shadow: none;
+  transition: none;
+}
+
+.select-field input[type="date"]:hover,
+.select-field input[type="time"]:hover,
+.select-field input[type="date"]:focus,
+.select-field input[type="time"]:focus {
+  border: 1px solid #aaa99f;
+  outline: none;
+  box-shadow: none;
+}
+
+/* Validation messages */
+.validationMessage {
+  margin-top: 0.5rem;
+  color: #a33b32;
+  font-size: 0.8rem;
+}
+
+.validationSuccess {
+  margin-top: 0.5rem;
+  color: #315C45;
+  font-size: 0.8rem;
 }

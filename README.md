@@ -39,7 +39,7 @@ The data is already in the repo (`data/out/`), so nothing is downloaded at start
 
 ## Limits
 
-- The map shows sightings, not birds. Sightings grow with the number of people birding: eBird records of all birds grew about 10x from 2010 to 2025. Each state's change in all-bird sightings is shown next to each species for context.
+- The map shows each bird's share of all sightings, corrected for the growth in birders (eBird records of all birds grew about 10x from 2010 to 2025). It is a relative trend, not a head count, and it shifts if birders change what they report. States where the trend is not statistically clear are flagged.
 - 8 species, US states only, breeding season (May to July) only.
 - Climate data is a statewide average; the District of Columbia uses Maryland's.
 - The analyst's causes are hypotheses, each with its evidence and a confidence level.

@@ -13,7 +13,7 @@ import json
 from collections import Counter
 from pathlib import Path
 
-from method import build_series, count_slope, detect_anomalies, fit_trend
+from method import build_series, detect_anomalies, fit_trend, share_slope
 
 ROOT = Path(__file__).resolve().parent.parent
 STATIC = ROOT / "data" / "static"
@@ -23,9 +23,10 @@ OUT = ROOT / "data" / "out"
 # before. eBird reaches GBIF once a year, so the latest year or two can be missing or partial.
 COMPLETE_YEAR_SHARE = 0.8
 
-# The second source: the trend in iNaturalist sightings from 2015, when it has enough records.
-# iNaturalist has far fewer records than eBird, so its threshold is lower.
+# The second source: the same corrected trend on iNaturalist from 2015, when it has enough records.
+# iNaturalist has far fewer records than eBird, so its thresholds are lower.
 SECOND_SOURCE_FROM = 2015
+INAT_MIN_ALL_BIRDS = 1_000
 INAT_MIN_SPECIES = 10
 INAT_MIN_YEARS = 6
 
@@ -75,8 +76,11 @@ def main() -> None:
             if fit is None:
                 continue
             fits[key, rid] = fit
-            slope = count_slope(counts_for("inaturalist", key, rid)[inat_from:], years[inat_from:],
-                                INAT_MIN_SPECIES, INAT_MIN_YEARS)
+            slope = share_slope(
+                counts_for("inaturalist", key, rid)[inat_from:],
+                counts_for("inaturalist", "all_birds", rid)[inat_from:],
+                years[inat_from:], INAT_MIN_ALL_BIRDS, INAT_MIN_SPECIES, INAT_MIN_YEARS,
+            )
             if slope is not None:
                 trends[key][rid]["secondSource"] = {"changePerYear": slope}
         # The base years differ by state when early years lack data; this field gives the usual case.
@@ -103,7 +107,7 @@ def main() -> None:
           f"{sum(1 for k in trends for e in trends[k].values() if e['secondSource'])} also have an iNaturalist trend")
     thin = sum(1 for rows in effort.values() for row in rows if row["records"] < 20_000)
     print(f"{thin} of {len(effort) * keep} state-years have fewer than 20,000 all-bird records")
-    print("\nTrend classes per species (raw sightings):")
+    print("\nTrend classes per species (corrected):")
     for s in species:
         classes = Counter(e["trend"]["class"] for e in trends[s["key"]].values() if e["trend"])
         print(f"  {s['commonName']:<23} " + ", ".join(f"{c} {n}" for c, n in classes.most_common()))

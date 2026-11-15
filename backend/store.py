@@ -9,10 +9,14 @@ from __future__ import annotations
 
 import json
 import math
+import sys
 from functools import lru_cache
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT / "pipeline"))
+from method import window_trend  # noqa: E402  (the pipeline's trend method, shared)
+
 STATIC_DIR = ROOT / "data" / "static"
 OUT_DIR = ROOT / "data" / "out"
 MOCK_DIR = ROOT / "data" / "mock"
@@ -119,30 +123,40 @@ def all_birds_trend(region_id: str) -> dict:
     return {"changePerYear": round((math.exp(slope) - 1) * 100, 1)}
 
 
-def raw_change(species_key: str, start: int, end: int) -> dict:
-    """Raw sighting counts per state in two years, and the change between them.
+def change_map(species_key: str, start: int, end: int) -> dict:
+    """For the globe: each state's corrected change between two years, with raw sightings for context.
 
-    allBirdsChangePct is the change in sightings of all birds in the same state, which shows how
-    much of a species' change comes from more people birding.
+    The change comes from the trend fitted to the years from start to end (so one odd year at either
+    end can't flip it). Every state with data gets a best-estimate direction; confident is false when
+    the 95% interval crosses zero. Raw sighting counts are included for context only.
     """
     all_years = years()
     i, j = all_years.index(start), all_years.index(end)
+    regional = series(species_key)["regions"]
     points = []
     for region in regions():
         n = counts(species_key, region["id"])
         if not n or (n[i] == 0 and n[j] == 0):
-            continue
-        all_birds = effort(region["id"])
+            continue  # the species is not recorded in this state in either year
+        corrected = regional[region["id"]]["corrected"]
+        window = window_trend(corrected, all_years, start, end)
         points.append({
             "region": region["id"],
             "name": region["name"],
             "lat": region["centroid"][0],
             "lng": region["centroid"][1],
+            "status": "ok" if window else "insufficient",
+            "changePct": window["changePct"] if window else None,
+            "changePerYear": window["changePerYear"] if window else None,
+            "low": window["low"] if window else None,
+            "high": window["high"] if window else None,
+            "direction": window["direction"] if window else None,
+            "confident": window["confident"] if window else False,
+            "startIndex": corrected[i],
+            "endIndex": corrected[j],
             "startCount": n[i],
             "endCount": n[j],
-            "change": n[j] - n[i],
-            "changePct": change_pct(n[i], n[j]),
-            "allBirdsChangePct": change_pct(all_birds[i]["records"], all_birds[j]["records"]),
+            "rawChangePct": change_pct(n[i], n[j]),
         })
     return {"key": species_key, "name": find_species(species_key)["commonName"], "dataPoints": points}
 
@@ -155,7 +169,7 @@ def same_direction(other: dict | None, trend: dict | None) -> bool | None:
 
 
 def detail(species_key: str, region_id: str) -> dict:
-    """Trend in raw sightings, checks, effort and climate for one species-region."""
+    """Corrected trend, raw-sightings trend, checks, effort and climate for one species-region."""
     entry = trends(species_key)[region_id]
     trend = entry["trend"]
 
@@ -166,6 +180,7 @@ def detail(species_key: str, region_id: str) -> dict:
         "species": species_key,
         "region": region_id,
         "trend": trend,
+        "rawTrend": entry["rawTrend"],
         "allBirdsTrend": all_birds_trend(region_id),
         "sufficiency": entry["sufficiency"],
         "secondSource": with_agreement(entry.get("secondSource")),

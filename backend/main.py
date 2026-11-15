@@ -97,7 +97,7 @@ def list_regions() -> list[dict]:
 
 @app.get("/api/series")
 def get_series(species: str) -> dict:
-    """Raw-sightings index (and the corrected index, no longer shown) for every region and year of one species."""
+    """Raw and corrected index for every region and year of one species."""
     require_species(species)
     return store.series(species)
 
@@ -121,7 +121,7 @@ def get_detail(species: str, region: str) -> dict:
 
 @app.get("/api/grab_data")
 def grab_data(species: str | None = None, start: int | None = None, end: int | None = None) -> dict:
-    """Raw sighting counts for the globe: one point per state, with the change from start to end year.
+    """For the globe: one point per state with the corrected change from start to end year.
 
     species is a comma-separated list of keys (default: all). start and end are years (default: the
     full range in availableYears). States where the species has no records in either year are left out.
@@ -138,7 +138,7 @@ def grab_data(species: str | None = None, start: int | None = None, end: int | N
         "startYear": start,
         "endYear": end,
         "availableYears": {"start": years[0], "end": years[-1]},
-        "species": [store.raw_change(key, start, end) for key in keys],
+        "species": [store.change_map(key, start, end) for key in keys],
     }
 
 

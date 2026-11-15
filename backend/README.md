@@ -2,7 +2,7 @@
 
 A FastAPI server for the API contract in the master spec. It serves the real data in `data/out/` (eBird and iNaturalist through GBIF, 2010 to 2025), falls back to mock data for any file that is missing, and `/api/ask` runs the AI analyst (OpenAI).
 
-As of Nov 14 the app shows raw sighting counts only; see the decision note at the top of the spec. Trends, anomalies and the analyst all work on raw sightings. The corrected index is still written to `series.json` but nothing uses it.
+The app shows the corrected index: a species' share of all bird sightings in a state and year, which cancels out the growth in birders. Trends, anomalies, the globe data and the analyst all use it, with raw sightings as context. (For a few hours on Nov 14 the app used raw sightings only; it switched back the same evening.)
 
 ## Run it
 
@@ -24,7 +24,7 @@ Then open http://localhost:8000/docs to try every endpoint in the browser.
 | --- | --- |
 | `GET /api/species` | The 8 demo species |
 | `GET /api/regions` | The 50 states and DC, with centroid and area |
-| `GET /api/grab_data?species=<key>,<key>&start=2015&end=2025` | For the globe: raw sightings per state in the start and end years, and the change between them |
+| `GET /api/grab_data?species=<key>,<key>&start=2015&end=2025` | For the globe: each state's corrected change from the start to the end year, with its direction and whether it is confident |
 | `GET /api/series?species=<key>` | Raw and corrected index for every region and year |
 | `GET /api/anomalies?species=<key>&limit=10` | Ranked anomalies; leave out `species` for all |
 | `GET /api/detail?species=<key>&region=<id>` | Trend, checks, effort and climate for one species-region |
@@ -59,7 +59,7 @@ For each file, the server reads `data/out/<file>` if it exists and `data/mock/<f
 | File | Shape |
 | --- | --- |
 | `series.json` | `{species: {species, years, baseYears, regions: {regionId: {raw[], corrected[], status[]}}}}` |
-| `trends.json` | `{species: {regionId: {trend: {changePerYear, low, high, class}, sufficiency: {label, yearsOk, yearsTotal}, secondSource: {changePerYear}}}}`. `trend` is the trend in raw eBird sightings; `secondSource` is the trend in iNaturalist sightings from 2015. |
+| `trends.json` | `{species: {regionId: {trend: {changePerYear, low, high, class}, rawTrend: {changePerYear}, sufficiency: {label, yearsOk, yearsTotal}, secondSource: {changePerYear}}}}`. `trend` is the corrected eBird trend, `rawTrend` the raw sightings trend, `secondSource` the corrected iNaturalist trend from 2015. |
 | `anomalies.json` | The `/api/anomalies` list, best first |
 | `effort.json` | `{regionId: [{year, records, recordsPer1000Km2}]}` |
 | `climate.json` | `{regionId: [{year, tempC, rainMm}]}`. Real: May to July mean temperature and total rainfall, 2010 to 2026, from NOAA's statewide averages (nClimDiv). DC uses Maryland's. |
@@ -72,13 +72,13 @@ These are what the server does today. Tell the team before changing them.
 
 - `sufficiency.label` is `good` (at least 90% of years pass), `limited` (at least 70%) or `insufficient`.
 - When a species-region is `insufficient`, `trend` is `null` in `/api/detail`, and the series values for failing years are `null`.
-- `/api/detail` returns `allBirdsTrend` (the trend in sightings of all birds in that state, the "more birders" baseline) in place of the spec's `rawTrend`, since `trend` is now itself raw.
+- `/api/detail` also returns `allBirdsTrend`: the trend in sightings of all birds in that state, which shows how much birding grew there.
 - `agrees` on `secondSource` and `survey` means the same direction as our trend. The server works it out; the data files don't store it.
 - `limit` on `/api/anomalies` goes up to 30.
 - Bad or missing parameters return 400 with the code `bad_request`. Unknown species or regions return 404 with `not_found`.
 - `POST /api/ask` accepts optional `year`, `start` and `end` next to `question`, `species` and `region`. Send the same `start` and `end` as `/api/grab_data`.
-- Anomaly rules on raw sightings: *regional divergence* is a state whose sightings trend is more than 3 robust z-scores from the species' other states; *strong trend* is one more than 3 robust z-scores from every species-state; *sudden change* is a year (or run of years) that departs from the state's trend by more than 20% and 3 z-scores, after removing that year's nationwide jump (eBird's user surges) and allowing for counting noise. The first two years are not checked for sudden changes. Headlines say "sightings".
-- `GET /api/grab_data`: `species` defaults to all, `start` and `end` to the full year range. States with no records of the species in either year are left out. `changePct` is null when `startCount` is 0. `allBirdsChangePct` is the change in sightings of all birds in that state, for context.
+- Anomaly rules, on the corrected index: *regional divergence* is a state whose trend is more than 3 robust z-scores from the species' other states; *strong trend* is beyond 5% a year with an interval that excludes zero (the spec's rule); *sudden change* is a year (or run of years) that departs from the state's trend by more than 20% and 3 z-scores, after removing that year's nationwide jump and allowing for counting noise. The first two years are not checked for sudden changes. The types score on different scales, so the feed interleaves them: the best of each type, then the second best, and so on.
+- `GET /api/grab_data`: `species` defaults to all, `start` and `end` to the full year range. Each point has `changePct` (the corrected change over the window, from the trend fitted to those years, so one odd year can't flip it), `changePerYear` with `low` and `high`, `direction` (`up` or `down`, the best estimate from that state's own data) and `confident` (false when the 95% interval crosses zero; draw those lighter). `startIndex` and `endIndex` are the corrected index in the two years. `startCount`, `endCount` and `rawChangePct` are raw sightings, for context. `status` is `insufficient` when the window has fewer than 3 years with enough data; then the change fields are null. States with no records in either year are left out.
 - `POST /api/ask` also returns `model`: the OpenAI model that answered, or `null` when no model was needed.
 - When the analyst can't answer, `POST /api/ask` returns 503 with the code `analyst_unavailable`. The frontend should show a "try again" state.
 

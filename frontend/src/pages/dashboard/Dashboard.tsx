@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { useLocation, useNavigate } from "react-router";
 
 import GlobeVisualization, {
@@ -12,11 +12,11 @@ import GlobeVisualization, {
 import DashboardSidebar from "../../components/sidebar/Sidebar";
 import DetailPanel from "../../components/detail_panel/DetailPanel";
 import Landing from "../../components/landing/Landing";
-import Starfield from "../../components/landing/Starfield";
 import type { Scene } from "../../components/landing/timeline";
 import { api, API_BASE } from "../../api/client";
 import type { GrabData, Region, Species } from "../../api/client";
 import { ContextProvider, useContextSettings } from "../../context/Context";
+import { useLook } from "../../looks";
 import { parsePointId, toDatasets, type SpeciesSightings } from "./globeData";
 
 import styles from "./dashboard.module.css";
@@ -57,6 +57,7 @@ function DashboardContent() {
   // "/" plays the landing over the globe; "/dashboard" is the globe with the sidebar
   const intro = useLocation().pathname === "/";
   const navigate = useNavigate();
+  const look = useLook();
   const enter = useCallback(() => navigate("/dashboard"), [navigate]);
 
   const {
@@ -247,8 +248,15 @@ function DashboardContent() {
       className={[styles.dashboard, intro ? styles.intro : "", isDragging ? styles.dragging : ""]
         .filter(Boolean)
         .join(" ")}
+      // Where the globe's center is, for backdrops that put something behind it
+      style={
+        {
+          "--globe-cx": intro ? "50%" : `calc(50% + ${(sidebarWidth + 6) / 2}px)`,
+          "--globe-cy": intro ? "50%" : "calc(50% + var(--nav-h) / 2)",
+        } as CSSProperties
+      }
     >
-      <Starfield scene={scene} />
+      <look.Backdrop key={look.id} scene={scene} />
 
       <div
         className={styles.workspace}
@@ -285,6 +293,7 @@ function DashboardContent() {
             // On the landing, the scroll moves the camera instead
             focus={intro ? null : focus}
             transparentBackground
+            art={look.art}
           />
 
           {!intro && !hasPlaceholder && loading && <div className={styles.status}>Loading data...</div>}

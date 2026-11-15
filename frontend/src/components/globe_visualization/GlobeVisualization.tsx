@@ -1,6 +1,9 @@
 import { useEffect, useImperativeHandle, useRef, type Ref } from "react";
 import Globe from "globe.gl";
 import * as THREE from "three";
+import { createShadeShell } from "../../looks/shadeShell";
+import type { GlobeArt, PaintedEarth } from "../../looks/types";
+import { EARTH_HEIGHT, EARTH_WIDTH, loadWorld, type World } from "../../looks/world";
 import styles from "./globe_visualization.module.css";
 
 // --------------------------------------------------
@@ -54,6 +57,7 @@ interface GlobeVisualizationProps {
   onPointClick?: (point: DataPoint) => void;
   focus?: GlobeView | null; // the camera flies here whenever this changes
   transparentBackground?: boolean; // no space backdrop, so the page shows through
+  art?: GlobeArt; // how the Earth is drawn; without it, a photo of the Earth
   ref?: Ref<GlobeHandle>;
 }
 
@@ -97,6 +101,10 @@ const EARTH_TEXTURE =
 
 const NIGHT_SKY =
   "https://unpkg.com/three-globe/example/img/night-sky.png";
+
+// Without a look's art
+const DEFAULT_RING_COLOR = "247, 245, 239";
+const DEFAULT_WIREFRAME_COLOR = "#b8c7d9";
 
 // Pillars grow out of the surface over this long, in ms
 const PILLAR_GROW_DURATION = 900;
@@ -634,10 +642,29 @@ function generateHeatmapOverlay(
 // Earth texture
 // --------------------------------------------------
 
+// Each look's Earth is painted once and kept. Keyed by the painter, so editing
+// one in dev repaints it.
+const paintedEarths = new WeakMap<PaintedEarth["paint"], HTMLCanvasElement>();
+
+function paintEarth(earth: PaintedEarth, world: World): HTMLCanvasElement {
+  let canvas = paintedEarths.get(earth.paint);
+
+  if (!canvas) {
+    canvas = document.createElement("canvas");
+    canvas.width = EARTH_WIDTH;
+    canvas.height = EARTH_HEIGHT;
+    earth.paint(canvas.getContext("2d")!, world);
+    paintedEarths.set(earth.paint, canvas);
+  }
+
+  return canvas;
+}
+
 function createEarthTexture(
-  earthImage: HTMLImageElement | null,
+  earthImage: CanvasImageSource | null,
   earthType: EarthType,
-  heatmapOverlay: HTMLCanvasElement | null
+  heatmapOverlay: HTMLCanvasElement | null,
+  fill = "#ffffff" // shown when there's no image (yet)
 ): THREE.CanvasTexture {
   const canvas = document.createElement("canvas");
 
@@ -664,7 +691,7 @@ function createEarthTexture(
       canvas.height
     );
   } else {
-    ctx.fillStyle = "#ffffff";
+    ctx.fillStyle = fill;
 
     ctx.fillRect(
       0,
@@ -698,6 +725,7 @@ export default function GlobeVisualization({
   onPointClick,
   focus,
   transparentBackground = false,
+  art,
   ref,
 }: GlobeVisualizationProps) {
   const globeContainer = useRef<HTMLDivElement | null>(null);
@@ -767,6 +795,27 @@ export default function GlobeVisualization({
       .backgroundColor(transparentBackground ? "rgba(0, 0, 0, 0)" : "#000011")
       .backgroundImageUrl(transparentBackground ? null : NIGHT_SKY);
   }, [transparentBackground]);
+
+  // The look's ripple color, and its drawn shadow and outline over the globe
+  useEffect(() => {
+    const globe = globeRef.current;
+    if (!globe) return;
+
+    const ring = art?.ringColor ?? DEFAULT_RING_COLOR;
+    globe.ringColor(() => (t: number) => `rgba(${ring}, ${1 - t})`);
+
+    if (!art?.shell || earthType === EarthType.WIREFRAME) return;
+
+    const scene = globe.scene();
+    const shell = createShadeShell(art.shell);
+    scene.add(shell);
+
+    return () => {
+      scene.remove(shell);
+      shell.geometry.dispose();
+      (shell.material as THREE.Material).dispose();
+    };
+  }, [art, earthType]);
 
   useImperativeHandle(
     ref,
@@ -840,20 +889,20 @@ export default function GlobeVisualization({
 
     let material: THREE.Material | null = null;
 
-    const applyEarth = (
-      image: HTMLImageElement | null
-    ) => {
+    const earth = art?.earth;
+
+    // Can run twice: once with a flat fill, again when the look's Earth is painted
+    const applyEarth = (image: CanvasImageSource | null, fill?: string) => {
       if (cancelled) return;
 
-      earthTexture = createEarthTexture(
-        image,
-        earthType,
-        heatmapOverlay
-      );
+      const previousMaterial = material;
+      const previousTexture = earthTexture;
+
+      earthTexture = createEarthTexture(image, earthType, heatmapOverlay, fill);
 
       if (earthType === EarthType.WIREFRAME) {
         material = new THREE.MeshBasicMaterial({
-          color: 0xb8c7d9,
+          color: art?.wireframeColor ?? DEFAULT_WIREFRAME_COLOR,
           wireframe: true,
         });
       } else {
@@ -864,6 +913,9 @@ export default function GlobeVisualization({
       }
 
       globe.globeMaterial(material);
+
+      previousMaterial?.dispose();
+      previousTexture?.dispose();
     };
 
     if (
@@ -871,6 +923,12 @@ export default function GlobeVisualization({
       earthType === EarthType.WIREFRAME
     ) {
       applyEarth(null);
+    } else if (earth) {
+      applyEarth(null, earth.ocean);
+
+      loadWorld()
+        .then(world => applyEarth(paintEarth(earth, world)))
+        .catch((error: unknown) => console.error("Failed to load the coastlines", error));
     } else {
       const image = new Image();
 
@@ -894,7 +952,7 @@ export default function GlobeVisualization({
 
       earthTexture?.dispose();
     };
-  }, [heatmapDatasets, visualizationType, earthType]);
+  }, [heatmapDatasets, visualizationType, earthType, art]);
 
   // ------------------------------------------------
   // Update data visualization

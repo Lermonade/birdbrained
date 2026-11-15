@@ -4,7 +4,7 @@
   height: 100dvh;
   padding-top: var(--nav-h); /* the navbar floats over this */
   overflow: hidden;
-  background: #000011;
+  background: var(--sky, #000011); /* set by the look; see src/looks */
   transition: padding-top 0.6s ease;
 }
 

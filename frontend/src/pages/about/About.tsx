@@ -1,30 +1,49 @@
+
 import styles from "./about.module.css";
+import image from "../../assets/population_decline.png";
 
 export default function About() {
   return (
     <main className={styles.page}>
       <div className={styles.content}>
-        <h1 className={styles.title}>About</h1>
-        <p className={styles.lead}>
-          Where America's birds are gaining ground, and where they're losing it.
-        </p>
+        <header className={styles.header}>
+          <h1 className={styles.title}>About</h1>
+          <p className={styles.lead}>
+            Where America's birds are gaining ground, and where they're losing it.
+          </p>
+        </header>
+
+        <div className={styles.cards}>
+          <section className={styles.card}>
+            <h2>What it shows</h2>
+            <p>
+              BirdBrained puts bird sightings on a globe. View international bird population data, visualize, and explore it. 
+            </p>
+          </section>
+
+          <section className={styles.card}>
+            <h2>How to use it</h2>
+            <p>
+              Open the dashboard and search for species' in the sidebar. Apply filters and constraints, and drag the timeline to watch the populations change.
+              Click on a data pillar to see information about the net change, and ask the analysis AI to explain the shifts you see.
+            </p>
+          </section>
+        </div>
+
+        <figure className={styles.imageWrapper}>
+          <img
+            className={styles.image}
+            src={image}
+            alt="Wild birds in their natural habitat"
+          />
+        </figure>
 
         <section className={styles.card}>
-          <h2>What it shows</h2>
-          <p>
-            BirdBrained puts bird sightings on a globe. Pick a species and the globe raises a
-            pillar over every state or province, tall where sightings are climbing and short
-            where they're falling.
-          </p>
-        </section>
-
-        <section className={styles.card}>
-          <h2>How to use it</h2>
-          <p>
-            Open the dashboard, search for species in the sidebar and click a pillar to see how
-            that place has changed over the years.
-          </p>
-        </section>
+            <h2>Why birds?</h2>
+            <p>
+              1 in 8 bird species is currently considered endangered, and this problem is only getting worse. There's a lack of comprehensive, intiuitive tools online to help visualize and understand these changes. This app aims to help solve that.
+            </p>
+          </section>
       </div>
     </main>
   );

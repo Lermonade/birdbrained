@@ -1,6 +1,6 @@
 // Small math helpers for the scroll-driven landing scene.
 
-/** What the landing shares with the starfield behind it. */
+/** What the landing shares with the backdrop behind it. */
 export interface Scene {
   progress: number; // 0 = top of the landing, 1 = dashboard
 }

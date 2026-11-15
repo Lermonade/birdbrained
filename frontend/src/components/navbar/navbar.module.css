@@ -85,18 +85,18 @@
   z-index: 20;
 }
 
-/* Light on the dark globe while the landing is up */
+/* On the landing it takes the look's ink (src/looks): light on a dark sky, dark on paper */
 .onLanding .logo,
 .onLanding .navLink {
-  color: var(--bg);
+  color: var(--landing-ink, var(--bg));
 }
 
 .onLanding .logoImage {
-  filter: invert(1);
+  filter: var(--landing-logo-filter, invert(1));
 }
 
 .onLanding .navLink:hover {
-  color: #ffffff;
+  color: var(--landing-ink, #ffffff);
   text-decoration: underline;
   text-underline-offset: 6px;
 }

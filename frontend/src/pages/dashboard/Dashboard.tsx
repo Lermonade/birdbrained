@@ -4,6 +4,7 @@ import {
   useMemo,
   useRef,
   useState,
+  type CSSProperties,
 } from "react";
 
 import { useLocation, useNavigate } from "react-router";
@@ -19,7 +20,6 @@ import GlobeVisualization, {
 import DashboardSidebar from "../../components/sidebar/Sidebar";
 import DetailPanel from "../../components/detail_panel/DetailPanel";
 import Landing from "../../components/landing/Landing";
-import Starfield from "../../components/landing/Starfield";
 
 import type { Scene } from "../../components/landing/timeline";
 
@@ -30,6 +30,8 @@ import {
   ContextProvider,
   useContextSettings,
 } from "../../context/Context";
+
+import { useLook } from "../../looks";
 
 import {
   parsePointId,
@@ -83,6 +85,7 @@ function DashboardContent() {
 
   const intro = useLocation().pathname === "/";
   const navigate = useNavigate();
+  const look = useLook();
 
   const enter = useCallback(
     () => navigate("/dashboard"),
@@ -421,8 +424,15 @@ function DashboardContent() {
       ]
         .filter(Boolean)
         .join(" ")}
+      // Where the globe's center is, for backdrops that put something behind it
+      style={
+        {
+          "--globe-cx": intro ? "50%" : `calc(50% + ${(sidebarWidth + 6) / 2}px)`,
+          "--globe-cy": intro ? "50%" : "calc(50% + var(--nav-h) / 2)",
+        } as CSSProperties
+      }
     >
-      <Starfield scene={scene} />
+      <look.Backdrop key={look.id} scene={scene} />
 
       <div
         className={styles.workspace}
@@ -467,6 +477,7 @@ function DashboardContent() {
             onPointClick={handlePointClick}
             focus={intro ? null : focus}
             transparentBackground
+            art={look.art}
           />
 
           {/* Loading */}

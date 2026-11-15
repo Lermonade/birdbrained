@@ -22,8 +22,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "pipeline"))
 from method import build_series, detect_anomalies, fit_trend, pct  # noqa: E402  (the shared method)
 
-STATIC = ROOT / "data" / "static"
-OUT = ROOT / "data" / "mock"
+OUT = ROOT / "data" / "mock"  # the mock data keeps the original US-only species and regions
 
 YEARS = list(range(2010, 2025))
 
@@ -156,8 +155,8 @@ def write(name: str, data, pretty: bool = False) -> None:
 
 
 def main() -> None:
-    regions = json.loads((STATIC / "regions.json").read_text(encoding="utf-8"))
-    species = json.loads((STATIC / "species.json").read_text(encoding="utf-8"))
+    regions = json.loads((OUT / "regions_us.json").read_text(encoding="utf-8"))
+    species = json.loads((OUT / "species_us.json").read_text(encoding="utf-8"))
     assert {s["key"] for s in species} == set(SPECIES), "species.json and SPECIES disagree"
 
     n_all = simulate_effort(regions)

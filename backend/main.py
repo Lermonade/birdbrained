@@ -91,7 +91,7 @@ def list_species() -> list[dict]:
 
 @app.get("/api/regions")
 def list_regions() -> list[dict]:
-    """The 50 states and DC, each with its centroid and area."""
+    """Every state and province with enough data, each with its center, country and season."""
     return store.regions()
 
 

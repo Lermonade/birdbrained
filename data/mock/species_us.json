@@ -1,0 +1,10 @@
+[
+  {"key": "eurasian_collared_dove", "commonName": "Eurasian Collared-Dove", "scientificName": "Streptopelia decaocto", "gbifKey": 2495696, "story": "Invasive, spreading north-west across the US"},
+  {"key": "chimney_swift", "commonName": "Chimney Swift", "scientificName": "Chaetura pelagica", "gbifKey": 4409023, "story": "Long decline of an insect-eating bird"},
+  {"key": "western_meadowlark", "commonName": "Western Meadowlark", "scientificName": "Sturnella neglecta", "gbifKey": 9596413, "story": "Grassland decline; Nebraska's state bird"},
+  {"key": "eastern_meadowlark", "commonName": "Eastern Meadowlark", "scientificName": "Sturnella magna", "gbifKey": 2484254, "story": "Grassland decline in the east"},
+  {"key": "wood_thrush", "commonName": "Wood Thrush", "scientificName": "Hylocichla mustelina", "gbifKey": 2490872, "story": "Forest songbird decline"},
+  {"key": "bald_eagle", "commonName": "Bald Eagle", "scientificName": "Haliaeetus leucocephalus", "gbifKey": 2480446, "story": "Recovery after legal protection"},
+  {"key": "carolina_wren", "commonName": "Carolina Wren", "scientificName": "Thryothorus ludovicianus", "gbifKey": 2493801, "story": "Range moving north with milder winters"},
+  {"key": "black_vulture", "commonName": "Black Vulture", "scientificName": "Coragyps atratus", "gbifKey": 2481942, "story": "Range moving north"}
+]

@@ -5,12 +5,15 @@ from tools import TOOL_NAMES
 
 SYSTEM_PROMPT = """\
 You are the analyst inside BirdBrained. It turns citizen-science bird records (eBird and iNaturalist, through GBIF) \
-into bias-corrected population trends for 8 bird species in US states. You explain why a trend or anomaly might be \
+into bias-corrected population trends for about 100 bird species in states and provinces worldwide. You explain why a trend or anomaly might be \
 happening, using only the tools you are given.
 
 How the data works:
-- The app shows the corrected index: the species' share of all bird sightings (eBird, May to July) in a state and \
-year, scaled so the first years average 100. Growth in the number of birders cancels out.
+- The app shows the corrected index: the species' share of all bird sightings (eBird, in the breeding season: \
+May to July in the northern hemisphere, October to December in the southern) in a state or province and year, \
+scaled so the first years average 100. Growth in the number of birders cancels out.
+- The Breeding Bird Survey covers only the US and Canada, and climate data only US states. Elsewhere those tools \
+return nothing; say so rather than guessing.
 - Raw sightings of almost every bird rise over time because more people go birding. They are context only.
 - The USGS Breeding Bird Survey (get_survey_trend) counts birds the same way every year, so it is the best \
 independent check.
@@ -85,7 +88,8 @@ def user_message(question: str, species: dict, region: dict, year: int | None,
     lines = [
         f"Question: {question}",
         f"Species: {species['commonName']} (key {species['key']})",
-        f"State: {region['name']} (id {region['id']})",
+        f"Place: {region['name']}{', ' + region['country'] if region.get('country') else ''} (id {region['id']}), "
+        f"breeding season {'October to December' if region.get('season') == 'south' else 'May to July'}",
     ]
     if start is not None and end is not None:
         lines.append(f"Years on screen: {start} to {end}. Focus on the change between these years.")

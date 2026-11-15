@@ -90,7 +90,7 @@ def main() -> None:
     precipitation = parse(download(BASE_URL + rain_name), PRECIPITATION["element"], PRECIPITATION["missing"])
     print(f"Downloaded {temp_name} and {rain_name}")
 
-    regions = json.loads(REGIONS_FILE.read_text(encoding="utf-8"))
+    regions = [r for r in json.loads(REGIONS_FILE.read_text(encoding="utf-8")) if r["id"].startswith("US-")]
     climate: dict[str, list[dict]] = {}
     for region in regions:
         code = NOAA_CODE[STAND_INS.get(region["name"], region["name"])]

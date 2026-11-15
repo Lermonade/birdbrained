@@ -32,7 +32,7 @@ The data is already in the repo (`data/out/`), so nothing is downloaded at start
 
 ## Data sources
 
-- **eBird** (Cornell Lab of Ornithology) and **iNaturalist** research-grade observations, through the [GBIF API](https://www.gbif.org/): bird records per state, May to July, 2010 to 2025.
+- **eBird** (Cornell Lab of Ornithology) and **iNaturalist** research-grade observations, through the [GBIF API](https://www.gbif.org/): bird records per state or province worldwide, in each hemisphere's breeding season, 2010 to 2025.
 - **USGS North American Breeding Bird Survey**, analysis results 1966 to 2024: state trends for 2014 to 2024.
 - **NOAA NCEI nClimDiv**: statewide monthly temperature and rainfall.
 - **OpenAI API**: the analyst.
@@ -40,6 +40,6 @@ The data is already in the repo (`data/out/`), so nothing is downloaded at start
 ## Limits
 
 - The map shows each bird's share of all sightings, corrected for the growth in birders (eBird records of all birds grew about 10x from 2010 to 2025). It is a relative trend, not a head count, and it shifts if birders change what they report. States where the trend is not statistically clear are flagged.
-- 8 species, US states only, breeding season (May to July) only.
-- Climate data is a statewide average; the District of Columbia uses Maryland's.
+- 100 species (our original 8 plus the most-reported birds of each continent) in 240 states and provinces across 42 countries, wherever eBird has enough records. Each place uses its own breeding season: May to July in the north, October to December in the south.
+- Climate data (NOAA) and the Breeding Bird Survey cover only the US (and Canada for the survey); elsewhere the analyst has less evidence.
 - The analyst's causes are hypotheses, each with its evidence and a confidence level.

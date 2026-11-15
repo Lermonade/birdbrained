@@ -79,12 +79,26 @@ def anomalies() -> list[dict]:
 
 def effort(region_id: str) -> list[dict]:
     """All-bird records per year: [{year, records, recordsPer1000Km2}]."""
-    return _pipeline("effort.json")[region_id]
+    return _pipeline("effort.json").get(region_id, [])
 
 
 def climate(region_id: str) -> list[dict]:
-    """Breeding-season weather per year: [{year, tempC, rainMm}]."""
-    return _pipeline("climate.json")[region_id]
+    """Breeding-season weather per year: [{year, tempC, rainMm}]. US states only (NOAA)."""
+    return _pipeline("climate.json").get(region_id, [])
+
+
+NO_DATA = {"trend": None, "rawTrend": None, "sufficiency": {"label": "insufficient", "yearsOk": 0, "yearsTotal": 0},
+           "secondSource": None}
+
+
+def trend_entry(species_key: str, region_id: str) -> dict:
+    """The trends.json entry for one species-region, or an insufficient one where the species isn't reported."""
+    return trends(species_key).get(region_id, NO_DATA)
+
+
+def series_region(species_key: str, region_id: str) -> dict | None:
+    """Raw and corrected index per year for one species-region, or None where the species isn't reported."""
+    return series(species_key)["regions"].get(region_id)
 
 
 def survey(species_key: str, region_id: str) -> dict | None:
@@ -154,6 +168,8 @@ def change_map(species_key: str, start: int, end: int) -> dict:
         n = counts(species_key, region["id"])
         if not n or (n[i] == 0 and n[j] == 0):
             continue  # the species is not recorded in this state in either year
+        if region["id"] not in regional:
+            continue
         corrected = regional[region["id"]]["corrected"]
         window = window_trend(corrected, all_years, start, end)
         raw_window = window_trend(regional[region["id"]]["raw"], all_years, start, end)
@@ -190,7 +206,7 @@ def same_direction(other: dict | None, trend: dict | None) -> bool | None:
 
 def detail(species_key: str, region_id: str) -> dict:
     """Corrected trend, raw-sightings trend, checks, effort and climate for one species-region."""
-    entry = trends(species_key)[region_id]
+    entry = trend_entry(species_key, region_id)
     trend = entry["trend"]
 
     def with_agreement(other: dict | None) -> dict | None:

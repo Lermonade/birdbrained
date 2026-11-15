@@ -35,3 +35,6 @@ AGENTS.md
 # Saved analyst answers
 backend/cache/
 package-lock.json
+
+# Cached GBIF answers (pipeline/fetch_gbif.py)
+data/gbif_cache/

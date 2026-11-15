@@ -13,7 +13,7 @@ import json
 from collections import Counter
 from pathlib import Path
 
-from method import build_series, detect_anomalies, fit_trend, share_slope
+from method import MIN_SPECIES, build_series, detect_anomalies, fit_trend, share_slope
 
 ROOT = Path(__file__).resolve().parent.parent
 STATIC = ROOT / "data" / "static"
@@ -52,12 +52,13 @@ def main() -> None:
     regions = json.loads((STATIC / "regions.json").read_text(encoding="utf-8"))
 
     all_years = raw["meta"]["years"]
-    years = complete_years(all_years, raw["nationalTotals"]["ebird"]["all_birds"])
+    # Both seasons must be complete (October to December of the latest year may not be published yet).
+    years = min((complete_years(all_years, totals) for totals in raw["seasonTotals"].values()), key=len)
     keep = len(years)
     print(f"Years {years[0]} to {years[-1]} ({keep}); downloaded up to {all_years[-1]}")
 
     def counts_for(dataset: str, taxon: str, region_id: str) -> list[int]:
-        return raw[f"{dataset}/{taxon}"][region_id][:keep]
+        return raw.get(f"{dataset}/{taxon}", {}).get(region_id, [0] * len(all_years))[:keep]
 
     inat_from = years.index(SECOND_SOURCE_FROM)
     series, trends, fits, counts = {}, {}, {}, {}
@@ -69,6 +70,8 @@ def main() -> None:
             rid = region["id"]
             n = counts_for("ebird", key, rid)
             n_all = counts_for("ebird", "all_birds", rid)
+            if max(n) < MIN_SPECIES:
+                continue  # the species is (almost) never reported here, so the region is left out
             counts[key][rid] = n
             region_series = build_series(n, n_all)
             series[key]["regions"][rid] = region_series
@@ -90,7 +93,8 @@ def main() -> None:
     area = {r["id"]: r["areaKm2"] for r in regions}
     effort = {
         rid: [
-            {"year": year, "records": total, "recordsPer1000Km2": round(total / area[rid] * 1000)}
+            {"year": year, "records": total,
+             "recordsPer1000Km2": round(total / area[rid] * 1000) if area[rid] else None}
             for year, total in zip(years, counts_for("ebird", "all_birds", rid))
         ]
         for rid in area

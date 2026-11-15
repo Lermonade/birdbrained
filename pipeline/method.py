@@ -191,7 +191,8 @@ def detect_anomalies(species: list[dict], regions: list[dict], trends: dict, fit
                      years: list[int], keep: int = 30) -> list[dict]:
     """The ranked anomaly list. `fits` maps (species key, region id) to fit_trend's fit."""
     species_name = {s["key"]: s["commonName"] for s in species}
-    region_name = {r["id"]: r["name"] for r in regions}
+    region_name = {r["id"]: r["name"] if r.get("country", "United States") == "United States"
+                   else f"{r['name']}, {r['country']}" for r in regions}
     all_slopes = [fit["slope"] for fit in fits.values()]
     found = []
 
@@ -218,6 +219,8 @@ def detect_anomalies(species: list[dict], regions: list[dict], trends: dict, fit
 
     for key in species_name:
         slopes = {region_id: fit["slope"] for (k, region_id), fit in fits.items() if k == key}
+        if not slopes:
+            continue  # no place has enough data for a trend of this species
         # A year's residual is judged against this species' usual spread across all states plus that
         # year's counting noise. Within one short series the spread is often tiny, and early years
         # have few records, so both would otherwise make ordinary noise look extreme.
@@ -246,7 +249,7 @@ def detect_anomalies(species: list[dict], regions: list[dict], trends: dict, fit
             z = robust_z(slope, list(slopes.values()))
             if len(slopes) >= 8 and abs(z) > 3:
                 pace = "faster" if (z > 0) == rising else "more slowly"
-                headline = f"{bird} is {'rising' if rising else 'falling'} {pace} in {place} than in other states"
+                headline = f"{bird} is {'rising' if rising else 'falling'} {pace} in {place} than elsewhere in its range"
                 options.append(("regional_divergence", z, "up" if z > 0 else "down", headline))
             if options:
                 kind, z, direction, headline = max(options, key=lambda o: abs(o[1]))

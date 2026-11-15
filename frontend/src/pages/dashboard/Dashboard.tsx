@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
-import { useLocation, useNavigate } from "react-router";
+import { useLocation, useNavigate, useSearchParams } from "react-router";
 
 import GlobeVisualization, {
   type DataPoint,
@@ -14,11 +14,14 @@ import DetailPanel from "../../components/detail_panel/DetailPanel";
 import Landing from "../../components/landing/Landing";
 import type { Scene } from "../../components/landing/timeline";
 import Timeline from "../../components/timeline/Timeline";
+import Legend from "../../components/legend/Legend";
+import TemplateShortcuts from "../../components/template_shortcuts/TemplateShortcuts";
 import { api, API_BASE } from "../../api/client";
 import type { CountsData, GrabData, Region, Species } from "../../api/client";
 import { ContextProvider, useContextSettings } from "../../context/Context";
 import { useLook } from "../../looks";
-import { parsePointId, toDatasets, type SpeciesSightings } from "./globeData";
+import { maxCount, maxRegionTotal, parsePointId, toDatasets, type SpeciesSightings } from "./globeData";
+import { findTemplate, TEMPLATES, type BirdTemplate } from "../templates/templateData";
 
 import styles from "./dashboard.module.css";
 
@@ -44,6 +47,20 @@ function sightings(perRegion: Record<string, number[]> | undefined): number {
   return total;
 }
 
+// What opening a template sets up: its bird (as a sidebar id: the sidebar numbers species
+// 1, 2, 3... in the catalog's order) and its years, kept inside the years the data has.
+function templateSetup(template: BirdTemplate, catalog: Species[], years: number[]) {
+  const index = catalog.findIndex(s => s.key === template.speciesKey);
+  if (index === -1) return null;
+
+  const first = years[0];
+  const last = years[years.length - 1];
+  const start = Math.max(template.startYear, first);
+  const end = Math.min(template.endYear, last);
+
+  return { id: index + 1, range: start < end ? { start, end } : { start: first, end: last } };
+}
+
 function DashboardContent() {
   // "/" plays the landing over the globe; "/dashboard" is the globe with the sidebar
   const intro = useLocation().pathname === "/";
@@ -51,12 +68,18 @@ function DashboardContent() {
   const look = useLook();
   const enter = useCallback(() => navigate("/dashboard"), [navigate]);
 
+  // /dashboard?template=<id> opens on that template (see pages/templates)
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTemplate = findTemplate(searchParams.get("template"));
+  const openedWith = useRef(activeTemplate);
+
   const {
     settings,
     allSpecies,
     selectedSpeciesIds,
     updateSpeciesList,
     addSelectedSpecies,
+    removeSelectedSpecies,
   } = useContextSettings();
 
   // Backend data
@@ -65,17 +88,17 @@ function DashboardContent() {
   const [counts, setCounts] = useState<CountsData | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // The timeline's years: pillars show sightings in `end`; the detail panel measures the
+  // The timeline's years: stamps show sightings in `end`; the detail panel measures the
   // change from `start` to `end`. Null until the data has loaded, then the full range.
   const [range, setRange] = useState<{ start: number; end: number } | null>(null);
   const [playing, setPlaying] = useState(false);
   const changeRange = useCallback((start: number, end: number) => setRange({ start, end }), []);
 
-  // The state clicked on the globe, and the species whose pillar or point it was
+  // The state clicked on the globe, and the species whose stamp it was
   const [selected, setSelected] = useState<{ speciesKey: string; region: string } | null>(null);
-  const [focus, setFocus] = useState<GlobeView>(US_VIEW);
+  const [focus, setFocus] = useState<GlobeView>(() => activeTemplate?.view ?? US_VIEW);
 
-  // The pillars come up when the landing's bird reaches the globe, and go again
+  // The stamps come up when the landing's bird reaches the globe, and go again
   // if the scene is rewound. Loading the dashboard directly, they're up from the start.
   const [landed, setLanded] = useState(!intro);
 
@@ -108,13 +131,23 @@ function DashboardContent() {
         setRegions(regionsResult);
         setCatalog(speciesResult);
         setCounts(countsResult);
-        setRange({ start: countsResult.years[0], end: countsResult.years[countsResult.years.length - 1] });
+
+        // Opened from a template: its bird and years. Otherwise the default bird, all years.
+        const setup = openedWith.current
+          ? templateSetup(openedWith.current, speciesResult, countsResult.years)
+          : null;
+        setRange(
+          setup?.range ?? {
+            start: countsResult.years[0],
+            end: countsResult.years[countsResult.years.length - 1],
+          }
+        );
 
         updateSpeciesList([
           ...speciesResult.map(s => ({ name: s.commonName, sightings: sightings(countsResult.species[s.key]) })),
         ]);
         const defaultIndex = speciesResult.findIndex(s => s.key === DEFAULT_SPECIES);
-        void addSelectedSpecies((defaultIndex === -1 ? 0 : defaultIndex) + 1);
+        void addSelectedSpecies(setup?.id ?? (defaultIndex === -1 ? 0 : defaultIndex) + 1);
       })
       .catch((e: Error) => {
         if (!cancelled) setError(e.message);
@@ -127,8 +160,8 @@ function DashboardContent() {
 
   // The globe shows every species selected in the sidebar, each in its sidebar color.
   // Sidebar ids are 1-based positions in the backend catalog.
-  const datasets = useMemo(() => {
-    const real: SpeciesSightings[] = [];
+  const shownSpecies = useMemo(() => {
+    const shown: SpeciesSightings[] = [];
 
     for (const id of selectedSpeciesIds) {
       const species = allSpecies.find(s => s.id === id);
@@ -136,13 +169,20 @@ function DashboardContent() {
 
       const key = catalog[id - 1]?.key;
       const perRegion = key ? counts?.species[key] : undefined;
-      if (key && perRegion) real.push({ key, name: species.name, color: species.color, counts: perRegion });
+      if (key && perRegion) shown.push({ key, name: species.name, color: species.color, counts: perRegion });
     }
 
-    const yearIndex = counts && range ? counts.years.indexOf(range.end) : -1;
-    const shown = yearIndex === -1 || !range ? NO_DATASETS : toDatasets(real, regions, yearIndex, range.end);
     return shown;
-  }, [selectedSpeciesIds, allSpecies, catalog, counts, regions, range]);
+  }, [selectedSpeciesIds, allSpecies, catalog, counts]);
+
+  const datasets = useMemo(() => {
+    const yearIndex = counts && range ? counts.years.indexOf(range.end) : -1;
+    return yearIndex === -1 || !range ? NO_DATASETS : toDatasets(shownSpecies, regions, yearIndex, range.end);
+  }, [shownSpecies, counts, regions, range]);
+
+  // The top of the stamps' scale, for the legend
+  const legendMax = useMemo(() => maxCount(shownSpecies), [shownSpecies]);
+  const heatmapMax = useMemo(() => maxRegionTotal(shownSpecies), [shownSpecies]);
 
   const loading = catalog.length === 0 && error === null;
 
@@ -151,6 +191,36 @@ function DashboardContent() {
     setSelected(parsePointId(point.id));
     setFocus({ lat: point.lat, lng: point.lng, altitude: STATE_ALTITUDE });
   }, []);
+
+  // The shortcuts: swap the globe to another template's bird, years and part of the world
+  const pickTemplate = useCallback(
+    (template: BirdTemplate) => {
+      if (!counts) return;
+      const setup = templateSetup(template, catalog, counts.years);
+      if (!setup) return;
+
+      for (const id of selectedSpeciesIds) {
+        if (id !== setup.id) removeSelectedSpecies(id);
+      }
+      void addSelectedSpecies(setup.id);
+
+      setRange(setup.range);
+      setPlaying(false);
+      setSelected(null);
+      setFocus({ ...template.view }); // a fresh object, so the camera flies even to the same view
+
+      // Keep the address in step, so a reload opens the same template
+      setSearchParams(
+        previous => {
+          const next = new URLSearchParams(previous);
+          next.set("template", template.id);
+          return next;
+        },
+        { replace: true }
+      );
+    },
+    [counts, catalog, selectedSpeciesIds, removeSelectedSpecies, addSelectedSpecies, setSearchParams]
+  );
 
   // The detail panel's numbers: the clicked species' change over the timeline's years.
   // Fetched once the years stop moving; the last answer stays up meanwhile.
@@ -275,14 +345,15 @@ function DashboardContent() {
         <GlobeVisualization
           ref={globe}
           datasets={landed ? datasets : NO_DATASETS}
-          // The landing always lands on pillars over the textured Earth
-          visualizationType={intro ? VisualizationType.PILLARS : settings.dataDisplayType}
+          // The landing always lands on stamps over the textured Earth
+          visualizationType={intro ? VisualizationType.STAMPS : settings.dataDisplayType}
           earthType={settings.earthDisplayType}
           onPointClick={handlePointClick}
           // On the landing, the scroll moves the camera instead
           focus={intro ? null : focus}
           transparentBackground
           art={look.art}
+          heatmapMax={heatmapMax}
         />
       </section>
 
@@ -335,6 +406,22 @@ function DashboardContent() {
               start={selectedGrab.startYear}
               end={selectedGrab.endYear}
               onClose={() => setSelected(null)}
+            />
+          )}
+
+          {!intro && range && shownSpecies.length > 0 && (
+            <Legend
+              type={settings.dataDisplayType}
+              maxCount={legendMax}
+              heatmapMax={heatmapMax}
+              year={range.end}
+            />
+          )}
+
+          {!intro && counts && range && (
+            <TemplateShortcuts
+              templates={TEMPLATES.filter(template => template.id !== activeTemplate?.id)}
+              onPick={pickTemplate}
             />
           )}
 

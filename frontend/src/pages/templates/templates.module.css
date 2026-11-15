@@ -1,14 +1,31 @@
-/* Same sky, paper and green as the landing and dashboard; the look (src/looks)
-   supplies --sky and --landing-ink. */
+/* Same scene as the dashboard: the look (src/looks) supplies the backdrop behind the
+   page, plus --sky and --landing-ink. The cards are prints on paper in that look's ink,
+   with a flat offset shadow in the color of its sun or moon. */
 .page {
+  position: relative;
   min-height: 100dvh;
   width: 100%;
   padding: calc(var(--nav-h) + 3rem) 5vw 5rem; /* the navbar floats over the top */
-  background: var(--sky, #0b1d2c);
   color: var(--landing-ink, #fbf1dc);
 }
 
+/* The look's backdrop, fixed behind everything and scrolled past by the content */
+.scene {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  background: var(--sky, #0b1d2c);
+  pointer-events: none;
+}
+
 /* Header */
+.header,
+.templateGrid {
+  position: relative;
+  z-index: 1;
+}
+
 .header {
   max-width: 1200px;
   margin: 0 auto 3.5rem;
@@ -31,55 +48,144 @@
 .templateGrid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
-  gap: 2rem;
+  gap: 2.25rem;
   max-width: 1200px;
   margin: 0 auto;
 }
 
-/* Individual templates: paper cards, like the sidebar */
+/* One print: paper in the look's ink, text in its sky. --print is the offset shadow. */
 .templateCard {
+  --paper: var(--landing-ink, #fbf1dc);
+  --ink: var(--sky, #0b1d2c);
+  --print: #e9965a; /* the park poster's sunset */
+  --lift: 0px;
+
+  position: relative;
   display: flex;
   flex-direction: column;
   min-width: 0;
+  padding: 12px 12px 0;
+  border-radius: 4px;
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: calc(7px - var(--lift)) calc(7px - var(--lift)) 0 var(--print);
+  transform: translate(var(--lift), var(--lift));
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+:global([data-look="block-print"]) .templateCard {
+  --print: #c9583b; /* the block print's moon */
+  border-radius: 2px;
+}
+
+.templateCard:hover,
+.templateCard:focus-within {
+  --lift: 3px;
+}
+
+.templateCard:has(.cardLink:active) {
+  --lift: -2px;
+}
+
+/* The photo, mounted on the paper like a print */
+.cardLink {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  position: relative;
+  color: inherit;
+  text-decoration: none;
+  outline-offset: 6px;
+}
+
+.photo {
   overflow: hidden;
-  border-radius: 12px;
-  background: var(--bg);
-  color: var(--text);
-  box-shadow: var(--shadow);
-  transition: transform 0.15s ease;
+  border: 2px solid var(--ink);
+  border-radius: 2px;
+  aspect-ratio: 4 / 3;
 }
 
-.templateCard:hover {
-  transform: translateY(-4px);
-}
-
-/* Bird images */
 .image {
   width: 100%;
-  aspect-ratio: 4 / 3;
+  height: 100%;
   object-fit: cover;
+  filter: saturate(0.92) contrast(1.04);
 }
 
-/* Text below images */
+/* Text below the photo */
 .cardInfo {
-  padding: 1rem 1.25rem 1.25rem;
+  padding: 0.9rem 3.2rem 1rem 0.25rem;
+}
+
+.region {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  color: var(--accent);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
 .species {
-  font-size: 1.25rem;
-  font-weight: 700;
-  line-height: 1.2;
+  margin-top: 0.3rem;
+  font-family: var(--display);
+  font-size: clamp(1.4rem, 1.2vw + 1rem, 1.75rem);
+  font-weight: 400;
+  line-height: 1.05;
 }
 
 .years {
-  margin-top: 0.25rem;
-  color: var(--accent);
+  margin-top: 0.4rem;
   font-size: 0.95rem;
-  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+/* The way in: an arrow in a stamp, bottom right */
+.go {
+  position: absolute;
+  right: 0.25rem;
+  bottom: 1rem;
+  display: grid;
+  place-items: center;
+  width: 2.3rem;
+  height: 2.3rem;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--paper);
+  transition: transform 0.15s ease;
+}
+
+.templateCard:hover .go,
+.templateCard:focus-within .go {
+  transform: translateX(3px);
+}
+
+/* Photo credit (required by the photos' licences) */
+.credit {
+  padding: 0.55rem 0.25rem 0.65rem;
+  border-top: 1px dashed color-mix(in srgb, var(--ink) 35%, transparent);
+  font-size: 0.72rem;
+  opacity: 0.75;
+}
+
+.credit a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.credit a:hover {
+  opacity: 0.8;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .templateCard {
+  .templateCard,
+  .go {
     transition: none;
   }
 }

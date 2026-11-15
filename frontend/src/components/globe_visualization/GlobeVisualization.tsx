@@ -5,6 +5,8 @@ import { createShadeShell } from "../../looks/shadeShell";
 import type { GlobeArt, PaintedEarth } from "../../looks/types";
 import { EARTH_HEIGHT, EARTH_WIDTH, loadWorld, type World } from "../../looks/world";
 import styles from "./globe_visualization.module.css";
+import { HEATMAP_GAMMA, HEATMAP_RAMP, HEATMAP_STRENGTH } from "./scales";
+import { StampLayer, type StampInput } from "./stamps";
 
 // --------------------------------------------------
 // Types
@@ -13,8 +15,9 @@ import styles from "./globe_visualization.module.css";
 export interface DataPoint {
   lat: number;
   lng: number;
-  height: number;
-  population?: number;
+  size?: number; // a stamp's size, 0 to 1 (see scales.ts); 0 if left out
+  layer?: number; // stack order among stamps on the same spot, 0 at the bottom
+  population?: number; // heatmap weight
   id?: string; // passed back to onPointClick, e.g. a state id
   label?: string; // HTML shown on hover instead of the default label
 }
@@ -26,10 +29,8 @@ export interface DataSet {
 }
 
 export const VisualizationType = {
-  POINTS: "points",
-  PILLARS: "pillars",
+  STAMPS: "stamps",
   HEATMAP: "heatmap",
-  MULTICOLOR_HEATMAP: "multicolor-heatmap",
 } as const;
 
 export type VisualizationType =
@@ -58,6 +59,7 @@ interface GlobeVisualizationProps {
   focus?: GlobeView | null; // the camera flies here whenever this changes
   transparentBackground?: boolean; // no space backdrop, so the page shows through
   art?: GlobeArt; // how the Earth is drawn; without it, a photo of the Earth
+  heatmapMax?: number; // the most sightings in one spot that the heatmap's darkest color stands for
   ref?: Ref<GlobeHandle>;
 }
 
@@ -76,22 +78,6 @@ interface Ring {
   speed: number;
 }
 
-interface GlobePoint extends DataPoint {
-  name: string;
-  color: string;
-}
-
-interface PillarPoint {
-  lat: number;
-  lng: number;
-  height: number;
-  population: number;
-  name: string;
-  color: string;
-  id?: string;
-  label?: string;
-}
-
 // --------------------------------------------------
 // Configuration
 // --------------------------------------------------
@@ -106,9 +92,6 @@ const NIGHT_SKY =
 const DEFAULT_RING_COLOR = "247, 245, 239";
 const DEFAULT_WIREFRAME_COLOR = "#b8c7d9";
 
-// Pillars grow out of the surface over this long, in ms
-const PILLAR_GROW_DURATION = 900;
-
 // Ripple rings: degrees per second for each ring, and how far they spread
 const RIPPLE_SPEEDS = [4, 7, 11];
 const RIPPLE_RADIUS = 9;
@@ -122,19 +105,10 @@ const HEATMAP_WIDTH = 4096;
 const HEATMAP_HEIGHT = 2048;
 
 const HEATMAP_BANDWIDTH = 4;
-const HEATMAP_OPACITY = 0.72;
+const HEATMAP_OPACITY = 0.82;
 
-// Pillar dimensions (globe world units)
-const PILLAR_RADIUS = 0.15;
-
-// A pillar that stands for a whole region (a point with an id) is wider
-const REGION_PILLAR_RADIUS = 0.35;
-
-// Maximum pillar height
-const MAX_PILLAR_HEIGHT = 8;
-
-// Height scaling
-const PILLAR_HEIGHT_SCALE = 0.08;
+// A stamp's rim, without a look's art
+const DEFAULT_MARK_OUTLINE = "#fbf1dc";
 
 // --------------------------------------------------
 // Color utilities
@@ -142,16 +116,6 @@ const PILLAR_HEIGHT_SCALE = 0.08;
 
 function clamp(value: number) {
   return Math.min(Math.max(value, 0), 1);
-}
-
-function hexToRgb(hex: string) {
-  const color = hex.replace("#", "");
-
-  return [
-    parseInt(color.slice(0, 2), 16),
-    parseInt(color.slice(2, 4), 16),
-    parseInt(color.slice(4, 6), 16),
-  ];
 }
 
 function interpolateColor(
@@ -187,222 +151,30 @@ function interpolateColor(
   );
 }
 
-const POPULATION_GRADIENT = [
-  { position: 0, color: [220, 35, 35] },
-  { position: 0.25, color: [245, 125, 65] },
-  { position: 0.5, color: [250, 220, 100] },
-  { position: 0.75, color: [90, 190, 220] },
-  { position: 1, color: [30, 85, 220] },
-];
-
-// --------------------------------------------------
-// Pillar aggregation
-// --------------------------------------------------
-
-/**
- * Converts latitude/longitude into 3D Cartesian coordinates.
- *
- * This lets us measure actual distances across the globe's
- * curved surface instead of using arbitrary degree ranges.
- */
-
-function latLngToVector(
-  lat: number,
-  lng: number,
-  globeRadius: number
-): THREE.Vector3 {
-  const phi = (90 - lat) * (Math.PI / 180);
-  const theta = (lng + 180) * (Math.PI / 180);
-
-  return new THREE.Vector3(
-    -globeRadius * Math.sin(phi) * Math.cos(theta),
-    globeRadius * Math.cos(phi),
-    globeRadius * Math.sin(phi) * Math.sin(theta)
-  );
-}
-
-/**
- * Groups sightings according to the actual physical footprint
- * of a pillar.
- *
- * Sightings are grouped when their surface positions are close
- * enough to occupy the same pillar footprint.
- *
- * Each resulting pillar represents the number of sightings
- * assigned to it.
- */
-
-function aggregatePillars(
-  datasets: DataSet[],
-  globeRadius: number
-): PillarPoint[] {
-  const pillars: PillarPoint[] = [];
-
-  // Actual diameter of a pillar.
-  const aggregationDistance = PILLAR_RADIUS * 2;
-
-  for (const dataset of datasets) {
-    // A point with an id is already one whole region with its own
-    // height (e.g. a state's change), so it becomes a pillar as it is.
-    for (const point of dataset.dataPoints) {
-      if (point.id === undefined) continue;
-
-      pillars.push({
-        ...point,
-        population: point.population ?? 1,
-        name: dataset.name,
-        color: dataset.color,
-      });
-    }
-
-    const points = dataset.dataPoints.filter(
-      point => point.id === undefined
-    );
-
-    // Store each sighting's 3D surface position.
-    const positionedPoints = points.map(point => ({
-      ...point,
-      position: latLngToVector(
-        point.lat,
-        point.lng,
-        globeRadius
-      ),
-    }));
-
-    // Spatial buckets accelerate proximity searches.
-    const cellSize = aggregationDistance;
-
-    const buckets = new Map<string, number[]>();
-
-    function getCellKey(
-      x: number,
-      y: number,
-      z: number
-    ) {
-      return `${x},${y},${z}`;
-    }
-
-    function getCell(position: THREE.Vector3) {
-      return {
-        x: Math.floor(position.x / cellSize),
-        y: Math.floor(position.y / cellSize),
-        z: Math.floor(position.z / cellSize),
-      };
-    }
-
-    // Each point can only belong to one pillar.
-    const assigned = new Set<number>();
-
-    for (let i = 0; i < positionedPoints.length; i++) {
-      if (assigned.has(i)) continue;
-
-      const current = positionedPoints[i];
-
-      const cell = getCell(current.position);
-
-      const members: number[] = [i];
-
-      assigned.add(i);
-
-      // Search neighboring spatial cells.
-      for (let x = -1; x <= 1; x++) {
-        for (let y = -1; y <= 1; y++) {
-          for (let z = -1; z <= 1; z++) {
-            const key = getCellKey(
-              cell.x + x,
-              cell.y + y,
-              cell.z + z
-            );
-
-            const candidates = buckets.get(key) ?? [];
-
-            for (const candidateIndex of candidates) {
-              if (assigned.has(candidateIndex)) continue;
-
-              const candidate =
-                positionedPoints[candidateIndex];
-
-              const distance = current.position.distanceTo(
-                candidate.position
-              );
-
-              if (distance <= aggregationDistance) {
-                members.push(candidateIndex);
-                assigned.add(candidateIndex);
-              }
-            }
-          }
-        }
-      }
-
-      // Register the current point in its spatial bucket.
-      const currentKey = getCellKey(
-        cell.x,
-        cell.y,
-        cell.z
-      );
-
-      if (!buckets.has(currentKey)) {
-        buckets.set(currentKey, []);
-      }
-
-      buckets.get(currentKey)!.push(i);
-
-      // Calculate the pillar's representative position.
-      const center = new THREE.Vector3();
-
-      let population = 0;
-
-      for (const memberIndex of members) {
-        const member = positionedPoints[memberIndex];
-
-        center.add(member.position);
-
-        population += member.population ?? 1;
-      }
-
-      center.divideScalar(members.length);
-
-      center.normalize().multiplyScalar(globeRadius);
-
-      // Convert representative position back to lat/lng.
-      const lat = THREE.MathUtils.radToDeg(
-        Math.asin(center.y / globeRadius)
-      );
-
-      const lng = THREE.MathUtils.radToDeg(
-        Math.atan2(center.z, -center.x)
-      ) - 180;
-
-      // Height represents the number of sightings.
-      const height = Math.min(
-        MAX_PILLAR_HEIGHT,
-        Math.max(
-          0.05,
-          population * PILLAR_HEIGHT_SCALE
-        )
-      );
-
-      pillars.push({
-        lat,
-        lng,
-        height,
-        population,
-        name: dataset.name,
-        color: dataset.color,
-      });
-    }
-  }
-
-  return pillars;
-}
-
 // --------------------------------------------------
 // Density generation
 // --------------------------------------------------
 
+// One blob per spot, however many species are stacked there: its weight is their total
+function totalPerSpot(points: DataPoint[]): DataPoint[] {
+  const spots = new Map<string, DataPoint>();
+
+  for (const point of points) {
+    const key = `${point.lat},${point.lng}`;
+    const spot = spots.get(key);
+    const weight = Math.max(0, point.population ?? 1);
+
+    if (spot) spot.population = (spot.population ?? 0) + weight;
+    else spots.set(key, { lat: point.lat, lng: point.lng, population: weight });
+  }
+
+  return [...spots.values()];
+}
+
+// reference: the weight that gets the darkest color (see scales.ts heatmapPosition)
 function generateDensityCanvas(
-  points: DataPoint[]
+  points: DataPoint[],
+  reference?: number
 ): HTMLCanvasElement {
   const canvas = document.createElement("canvas");
 
@@ -413,6 +185,7 @@ function generateDensityCanvas(
 
   const maxWeight = Math.max(
     1,
+    reference ?? 0,
     ...points.map(point =>
       Math.max(0, point.population ?? 1)
     )
@@ -448,7 +221,7 @@ function generateDensityCanvas(
     );
 
     const strength =
-      0.38 * Math.sqrt(weight / maxWeight);
+      HEATMAP_STRENGTH * Math.sqrt(weight / maxWeight);
 
     const positions = [
       x,
@@ -521,10 +294,9 @@ function generateDensityCanvas(
 // Density colorization
 // --------------------------------------------------
 
-function colorizeDensity(
-  densityCanvas: HTMLCanvasElement,
-  color?: string
-): HTMLCanvasElement {
+// Density to color: pale and faint where sightings are sparse, dark where they're
+// dense (see HEATMAP_RAMP in scales.ts)
+function colorizeDensity(densityCanvas: HTMLCanvasElement): HTMLCanvasElement {
   const canvas = document.createElement("canvas");
 
   canvas.width = HEATMAP_WIDTH;
@@ -543,41 +315,28 @@ function colorizeDensity(
 
   const pixels = imageData.data;
 
-  let maxDensity = 0;
-
-  for (let i = 3; i < pixels.length; i += 4) {
-    maxDensity = Math.max(maxDensity, pixels[i]);
-  }
-
-  if (maxDensity === 0) return canvas;
-
-  const datasetColor = color
-    ? hexToRgb(color)
-    : null;
+  // A fixed peak, not the brightest pixel, so a color means the same count in every
+  // year and the legend's numbers hold (overlapping blobs just clamp at the darkest)
+  const fullDensity = HEATMAP_STRENGTH * 255;
 
   for (let i = 0; i < pixels.length; i += 4) {
-    const density = pixels[i + 3] / maxDensity;
+    const density = Math.min(1, pixels[i + 3] / fullDensity);
 
     if (density < 0.005) {
       pixels[i + 3] = 0;
       continue;
     }
 
-    const intensity = Math.pow(density, 0.65);
+    const intensity = Math.pow(density, HEATMAP_GAMMA);
 
-    const rgb = datasetColor
-      ? datasetColor
-      : interpolateColor(
-          POPULATION_GRADIENT,
-          intensity
-        );
+    const rgb = interpolateColor(HEATMAP_RAMP, intensity);
 
     pixels[i] = rgb[0];
     pixels[i + 1] = rgb[1];
     pixels[i + 2] = rgb[2];
 
     pixels[i + 3] = Math.round(
-      255 * HEATMAP_OPACITY * intensity
+      255 * HEATMAP_OPACITY * Math.min(1, 0.1 + intensity)
     );
   }
 
@@ -590,52 +349,11 @@ function colorizeDensity(
 // Heatmap overlay
 // --------------------------------------------------
 
-function generateHeatmapOverlay(
-  datasets: DataSet[],
-  visualizationType: VisualizationType
-): HTMLCanvasElement {
-  const overlay = document.createElement("canvas");
+// Every species shown, as one density
+function generateHeatmapOverlay(datasets: DataSet[], reference?: number): HTMLCanvasElement {
+  const points = totalPerSpot(datasets.flatMap(dataset => dataset.dataPoints));
 
-  overlay.width = HEATMAP_WIDTH;
-  overlay.height = HEATMAP_HEIGHT;
-
-  const ctx = overlay.getContext("2d")!;
-
-  if (visualizationType === VisualizationType.HEATMAP) {
-    const points = datasets.flatMap(
-      dataset => dataset.dataPoints
-    );
-
-    const density = generateDensityCanvas(points);
-
-    const colored = colorizeDensity(density);
-
-    ctx.drawImage(colored, 0, 0);
-  }
-
-  if (
-    visualizationType ===
-    VisualizationType.MULTICOLOR_HEATMAP
-  ) {
-    ctx.globalCompositeOperation = "screen";
-
-    for (const dataset of datasets) {
-      const density = generateDensityCanvas(
-        dataset.dataPoints
-      );
-
-      const colored = colorizeDensity(
-        density,
-        dataset.color
-      );
-
-      ctx.drawImage(colored, 0, 0);
-    }
-
-    ctx.globalCompositeOperation = "source-over";
-  }
-
-  return overlay;
+  return colorizeDensity(generateDensityCanvas(points, reference));
 }
 
 // --------------------------------------------------
@@ -715,6 +433,27 @@ function createEarthTexture(
 }
 
 // --------------------------------------------------
+// Stamps
+// --------------------------------------------------
+
+function toStamps(datasets: DataSet[]): StampInput[] {
+  return datasets.flatMap(dataset =>
+    dataset.dataPoints.map(point => ({
+      key: point.id ?? `${dataset.name}|${point.lat},${point.lng}`,
+      lat: point.lat,
+      lng: point.lng,
+      size: point.size ?? 0,
+      layer: point.layer ?? 0,
+      color: dataset.color,
+      label:
+        point.label ??
+        `<div style="color: white; padding: 5px;"><strong style="color: ${dataset.color}">${dataset.name}</strong></div>`,
+      point,
+    }))
+  );
+}
+
+// --------------------------------------------------
 // Globe component
 // --------------------------------------------------
 
@@ -726,6 +465,7 @@ export default function GlobeVisualization({
   focus,
   transparentBackground = false,
   art,
+  heatmapMax,
   ref,
 }: GlobeVisualizationProps) {
   const globeContainer = useRef<HTMLDivElement | null>(null);
@@ -740,6 +480,8 @@ export default function GlobeVisualization({
     null
   );
 
+  const stampsRef = useRef<StampLayer | null>(null);
+
   // ------------------------------------------------
   // Initialize globe once
   // ------------------------------------------------
@@ -752,7 +494,6 @@ export default function GlobeVisualization({
     const globe = new Globe(container)
       .globeImageUrl("")
       .showAtmosphere(false)
-      .pointsTransitionDuration(PILLAR_GROW_DURATION)
       .ringColor(() => (t: number) => `rgba(247, 245, 239, ${1 - t})`)
       .ringMaxRadius(RIPPLE_RADIUS)
       .ringPropagationSpeed((d: object) => (d as Ring).speed)
@@ -765,9 +506,12 @@ export default function GlobeVisualization({
 
     globe.controls().autoRotate = false;
 
-    globe.onPointClick((d: object) => onPointClickRef.current?.(d as GlobePoint));
-
     globeRef.current = globe;
+
+    const stamps = new StampLayer(globe, DEFAULT_MARK_OUTLINE, point =>
+      onPointClickRef.current?.(point)
+    );
+    stampsRef.current = stamps;
 
     const resizeObserver = new ResizeObserver(() => {
       globe
@@ -779,6 +523,9 @@ export default function GlobeVisualization({
 
     return () => {
       resizeObserver.disconnect();
+
+      stamps.dispose();
+      stampsRef.current = null;
 
       globe._destructor();
 
@@ -803,6 +550,8 @@ export default function GlobeVisualization({
 
     const ring = art?.ringColor ?? DEFAULT_RING_COLOR;
     globe.ringColor(() => (t: number) => `rgba(${ring}, ${1 - t})`);
+
+    stampsRef.current?.setOutline(art?.markOutline ?? DEFAULT_MARK_OUTLINE);
 
     if (!art?.shell || earthType === EarthType.WIREFRAME) return;
 
@@ -862,11 +611,9 @@ export default function GlobeVisualization({
     []
   );
 
-  // Only a heatmap is painted onto the Earth texture. For anything else the
+  // Only a heatmap is painted onto the Earth texture. With stamps the
   // texture doesn't depend on the data, so new data doesn't redraw it.
-  const isHeatmap =
-    visualizationType === VisualizationType.HEATMAP ||
-    visualizationType === VisualizationType.MULTICOLOR_HEATMAP;
+  const isHeatmap = visualizationType === VisualizationType.HEATMAP;
   const heatmapDatasets = isHeatmap ? datasets : NO_DATASETS;
 
   // ------------------------------------------------
@@ -880,7 +627,7 @@ export default function GlobeVisualization({
 
     const heatmapOverlay =
       heatmapDatasets.length > 0
-        ? generateHeatmapOverlay(heatmapDatasets, visualizationType)
+        ? generateHeatmapOverlay(heatmapDatasets, heatmapMax)
         : null;
 
     let cancelled = false;
@@ -952,91 +699,22 @@ export default function GlobeVisualization({
 
       earthTexture?.dispose();
     };
-  }, [heatmapDatasets, visualizationType, earthType, art]);
+  }, [heatmapDatasets, heatmapMax, earthType, art]);
 
   // ------------------------------------------------
   // Update data visualization
   // ------------------------------------------------
 
   useEffect(() => {
-    const globe = globeRef.current;
+    const stamps = stampsRef.current;
 
-    if (!globe) return;
+    if (!stamps) return;
 
-    globe.pointsData([]);
-
-    const points: GlobePoint[] = datasets.flatMap(
-      dataset =>
-        dataset.dataPoints.map(point => ({
-          ...point,
-          name: dataset.name,
-          color: dataset.color,
-        }))
-    );
-
-    // POINTS
-    if (
-      visualizationType === VisualizationType.POINTS
-    ) {
-      globe
-        .pointRadius(0.12)
-        .pointAltitude(0.005)
-        .pointResolution(8)
-        .pointColor((d: object) =>
-          (d as GlobePoint).color
-        )
-        .pointLabel((d: object) => {
-          const point = d as GlobePoint;
-
-          return point.label ?? `${point.name}: ${point.lat}, ${point.lng}`;
-        })
-        .pointsData(points);
+    if (visualizationType === VisualizationType.STAMPS) {
+      stamps.update(toStamps(datasets));
+    } else {
+      stamps.clear();
     }
-
-    // PILLARS
-    if (
-      visualizationType === VisualizationType.PILLARS
-    ) {
-      const globeRadius = 100;
-
-      const pillars = aggregatePillars(
-        datasets,
-        globeRadius
-      );
-
-      globe
-        .pointRadius((d: object) =>
-          (d as PillarPoint).id === undefined
-            ? PILLAR_RADIUS
-            : REGION_PILLAR_RADIUS
-        )
-        .pointAltitude((d: object) =>
-          (d as PillarPoint).height
-        )
-        .pointResolution(8)
-        .pointColor((d: object) =>
-          (d as PillarPoint).color
-        )
-        .pointLabel((d: object) => {
-          const pillar = d as PillarPoint;
-
-          if (pillar.label) return pillar.label;
-
-          return `
-            <div style="color: white; padding: 5px;">
-              <strong style="color: ${pillar.color}">
-                ${pillar.name}
-              </strong>
-              <br />
-              Sightings: ${pillar.population}
-              <br />
-              Height: ${pillar.height.toFixed(2)}
-            </div>
-          `;
-        })
-        .pointsData(pillars);
-    }
-
   }, [datasets, visualizationType]);
 
   // Fly the camera to a new view

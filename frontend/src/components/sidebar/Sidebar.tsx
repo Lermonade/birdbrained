@@ -190,7 +190,7 @@ export default function Sidebar() {
                 </h2>
 
                 <span className={styles.speciesCount}>
-                  {selectedSpecies.length}/10
+                  {selectedSpecies.length} shown
                 </span>
               </div>
 
@@ -200,7 +200,7 @@ export default function Sidebar() {
 
                 <input
                   type="text"
-                  placeholder="Search species..."
+                  placeholder={`Search ${allSpecies.length.toLocaleString()} species...`}
                   value={searchQuery}
                   onChange={e =>
                     setSearchQuery(e.target.value)
@@ -214,7 +214,7 @@ export default function Sidebar() {
 
                   {selectedSpecies.length >= 10 ? (
                     <p className={styles.speciesEmpty}>
-                      Maximum of 10 species selected.
+                      Up to 10 species can be shown at once. Remove one to add another.
                     </p>
                   ) : matchingSpecies.length > 0 ? (
 
@@ -420,20 +420,12 @@ export default function Sidebar() {
                     )
                   }
                 >
-                  <option value="pillars">
-                    Pillars
-                  </option>
-
-                  <option value="points">
-                    Points
+                  <option value="stamps">
+                    Stamps
                   </option>
 
                   <option value="heatmap">
                     Heatmap
-                  </option>
-
-                  <option value="multicolor-heatmap">
-                    Multicolored Heatmap
                   </option>
                 </select>
               </div>

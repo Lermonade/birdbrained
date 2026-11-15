@@ -49,7 +49,7 @@ QUESTION = "Is the Wood Thrush (wood_thrush) declining in Ohio (US-OH)? Answer i
 
 def get_trend(species: str, region: str) -> dict:
     detail = store.detail(species, region)
-    return {key: detail[key] for key in ("trend", "rawTrend", "sufficiency")}
+    return {key: detail[key] for key in ("trend", "allBirdsTrend", "sufficiency")}
 
 
 def round_trip(client: genai.Client, model: str) -> str:

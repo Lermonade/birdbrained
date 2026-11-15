@@ -46,24 +46,29 @@ def check_sampling(species: str, region: str) -> dict:
 
 
 def get_trend(species: str, region: str) -> dict:
-    """Raw and corrected index per year, with the fitted trends."""
-    series = store.series(species)
-    regional = series["regions"][region]
-    entry = store.trends(species)[region]
+    """Raw sightings of the species per year in this state and their trend, next to sightings of all birds."""
+    years = store.years()
+    sightings = store.counts(species, region) or [0] * len(years)
+    all_birds = {row["year"]: row["records"] for row in store.effort(region)}
+    all_birds_list = [all_birds.get(year) for year in years]
     return {
-        "years": series["years"],
-        "baseYears": series["baseYears"],
-        "rawIndex": regional["raw"],
-        "correctedIndex": regional["corrected"],
-        "correctedTrend": entry["trend"],
-        "rawTrend": entry["rawTrend"],
-        "note": "Index 100 is the base-year average. Trends are percent change per year; "
-        "low and high bound the 95% interval. Null values are years without enough records.",
+        "years": years,
+        "sightings": sightings,
+        "allBirdSightings": all_birds_list,
+        "sightingsTrend": store.trends(species)[region]["trend"],
+        "allBirdsTrend": store.all_birds_trend(region),
+        "changeFirstToLastYearPct": {
+            "sightings": store.change_pct(sightings[0], sightings[-1]),
+            "allBirdSightings": store.change_pct(all_birds_list[0] or 0, all_birds_list[-1] or 0),
+        },
+        "note": "Sightings are eBird records from May to July. They rise when more people go birding, so "
+        "compare them with sightings of all birds. Trends are percent change per year; low and high bound "
+        "the 95% interval.",
     }
 
 
 def get_national_context(species: str) -> dict:
-    """How this species is changing across all states, to separate local from range-wide change."""
+    """How sightings of this species are changing across all states, to separate local from range-wide change."""
     with_trend = [(rid, e["trend"]) for rid, e in store.trends(species).items() if e["trend"] is not None]
     if not with_trend:
         return {"statesWithTrend": 0}
@@ -86,7 +91,7 @@ def get_national_context(species: str) -> dict:
 
 
 def compare_sources(species: str, region: str) -> dict:
-    """Our eBird trend against the same method run on iNaturalist records."""
+    """The trend in eBird sightings against the trend in iNaturalist sightings, from 2015."""
     entry = store.trends(species)[region]
     second = entry.get("secondSource")
     if entry["trend"] is None or second is None:
@@ -100,7 +105,7 @@ def compare_sources(species: str, region: str) -> dict:
 
 
 def get_survey_trend(species: str, region: str) -> dict:
-    """The USGS Breeding Bird Survey trend, an independent check."""
+    """The USGS Breeding Bird Survey trend: birds counted the same way on fixed routes every year."""
     survey = store.survey(species, region)
     if survey is None:
         return {"available": False, "reason": "No Breeding Bird Survey trend for this species and state."}
@@ -108,9 +113,13 @@ def get_survey_trend(species: str, region: str) -> dict:
     return {
         "available": True,
         "surveyChangePerYear": survey["changePerYear"],
+        "surveyLow": survey.get("low"),
+        "surveyHigh": survey.get("high"),
         "surveyPeriod": survey["period"],
-        "ourChangePerYear": trend["changePerYear"] if trend else None,
-        "sameDirection": store.same_direction(survey, trend),
+        "surveyCredibility": survey.get("credibility"),
+        "sightingsChangePerYear": trend["changePerYear"] if trend else None,
+        "note": "The survey's effort is the same every year, so it is the best check of whether the birds "
+        "themselves changed. Raw sightings also grow with the number of birders.",
     }
 
 

@@ -1,0 +1,512 @@
+[
+  {
+    "id": "a_0001",
+    "type": "sudden_change",
+    "species": "carolina_wren",
+    "region": "US-WI",
+    "years": [
+      2013,
+      2013
+    ],
+    "direction": "up",
+    "headline": "Carolina Wren sightings jumped sharply in Wisconsin in 2013",
+    "changePerYear": 20.2,
+    "z": 10.2,
+    "score": 7.6,
+    "sufficiency": "limited",
+    "confirmedBySecondSource": false
+  },
+  {
+    "id": "a_0002",
+    "type": "sudden_change",
+    "species": "eastern_meadowlark",
+    "region": "US-CT",
+    "years": [
+      2025,
+      2025
+    ],
+    "direction": "up",
+    "headline": "Eastern Meadowlark sightings jumped sharply in Connecticut in 2025",
+    "changePerYear": 7.6,
+    "z": 5.2,
+    "score": 5.2,
+    "sufficiency": "good",
+    "confirmedBySecondSource": false
+  },
+  {
+    "id": "a_0003",
+    "type": "sudden_change",
+    "species": "eurasian_collared_dove",
+    "region": "US-AK",
+    "years": [
+      2020,
+      2022
+    ],
+    "direction": "down",
+    "headline": "Eurasian Collared-Dove sightings dropped sharply in Alaska from 2020 to 2022",
+    "changePerYear": 8.9,
+    "z": 5.2,
+    "score": 5.2,
+    "sufficiency": "good",
+    "confirmedBySecondSource": false
+  },
+  {
+    "id": "a_0004",
+    "type": "sudden_change",
+    "species": "carolina_wren",
+    "region": "US-ME",
+    "years": [
+      2016,
+      2017
+    ],
+    "direction": "down",
+    "headline": "Carolina Wren sightings dropped sharply in Maine from 2016 to 2017",
+    "changePerYear": 32.2,
+    "z": 4.9,
+    "score": 4.9,
+    "sufficiency": "good",
+    "confirmedBySecondSource": false
+  },
+  {
+    "id": "a_0005",
+    "type": "regional_divergence",
+    "species": "eurasian_collared_dove",
+    "region": "US-MN",
+    "years": [
+      2010,
+      2025
+    ],
+    "direction": "up",
+    "headline": "Eurasian Collared-Dove sightings are rising faster in Minnesota than in other states",
+    "changePerYear": 31.4,
+    "z": 4.9,
+    "score": 4.9,
+    "sufficiency": "good",
+    "confirmedBySecondSource": false
+  },
+  {
+    "id": "a_0006",
+    "type": "regional_divergence",
+    "species": "eurasian_collared_dove",
+    "region": "US-LA",
+    "years": [
+      2010,
+      2025
+    ],
+    "direction": "down",
+    "headline": "Eurasian Collared-Dove sightings are rising more slowly in Louisiana than in other states",
+    "changePerYear": 4.6,
+    "z": 4.6,
+    "score": 4.6,
+    "sufficiency": "good",
+    "confirmedBySecondSource": false
+  },
+  {
+    "id": "a_0007",
+    "type": "sudden_change",
+    "species": "carolina_wren",
+    "region": "US-MA",
+    "years": [
+      2015,
+      2017
+    ],
+    "direction": "down",
+    "headline": "Carolina Wren sightings dropped sharply in Massachusetts from 2015 to 2017",
+    "changePerYear": 26.4,
+    "z": 4.5,
+    "score": 4.5,
+    "sufficiency": "good",
+    "confirmedBySecondSource": false
+  },
+  {
+    "id": "a_0008",
+    "type": "sudden_change",
+    "species": "carolina_wren",
+    "region": "US-IA",
+    "years": [
+      2016,
+      2018
+    ],
+    "direction": "up",
+    "headline": "Carolina Wren sightings jumped sharply in Iowa from 2016 to 2018",
+    "changePerYear": 30.6,
+    "z": 5.8,
+    "score": 4.4,
+    "sufficiency": "limited",
+    "confirmedBySecondSource": false
+  },
+  {
+    "id": "a_0009",
+    "type": "regional_divergence",
+    "species": "black_vulture",
+    "region": "US-LA",
+    "years": [
+      2010,
+      2025
+    ],
+    "direction": "down",
+    "headline": "Black Vulture sightings are rising more slowly in Louisiana than in other states",
+    "changePerYear": 5.6,
+    "z": 4.3,
+    "score": 4.3,
+    "sufficiency": "good",
+    "confirmedBySecondSource": false
+  },
+  {
+    "id": "a_0010",
+    "type": "sudden_change",
+    "species": "chimney_swift",
+    "region": "US-LA",
+    "years": [
+      2018,
+      2018
+    ],
+    "direction": "down",
+    "headline": "Chimney Swift sightings dropped sharply in Louisiana in 2018",
+    "changePerYear": 10.4,
+    "z": 4.3,
+    "score": 4.3,
+    "sufficiency": "good",
+    "confirmedBySecondSource": false
+  },
+  {
+    "id": "a_0011",
+    "type": "regional_divergence",
+    "species": "black_vulture",
+    "region": "US-OH",
+    "years": [
+      2010,
+      2025
+    ],
+    "direction": "up",
+    "headline": "Black Vulture sightings are rising faster in Ohio than in other states",
+    "changePerYear": 28.6,
+    "z": 3.3,
+    "score": 4.2,
+    "sufficiency": "good",
+    "confirmedBySecondSource": true
+  },
+  {
+    "id": "a_0012",
+    "type": "sudden_change",
+    "species": "chimney_swift",
+    "region": "US-DE",
+    "years": [
+      2012,
+      2012
+    ],
+    "direction": "down",
+    "headline": "Chimney Swift sightings dropped sharply in Delaware in 2012",
+    "changePerYear": 11.6,
+    "z": 4.2,
+    "score": 4.2,
+    "sufficiency": "good",
+    "confirmedBySecondSource": false
+  },
+  {
+    "id": "a_0013",
+    "type": "sudden_change",
+    "species": "carolina_wren",
+    "region": "US-NY",
+    "years": [
+      2017,
+      2017
+    ],
+    "direction": "down",
+    "headline": "Carolina Wren sightings dropped sharply in New York in 2017",
+    "changePerYear": 24.8,
+    "z": 3.2,
+    "score": 4.1,
+    "sufficiency": "good",
+    "confirmedBySecondSource": true
+  },
+  {
+    "id": "a_0014",
+    "type": "sudden_change",
+    "species": "carolina_wren",
+    "region": "US-NH",
+    "years": [
+      2017,
+      2019
+    ],
+    "direction": "down",
+    "headline": "Carolina Wren sightings dropped sharply in New Hampshire from 2017 to 2019",
+    "changePerYear": 33.0,
+    "z": 4.0,
+    "score": 4.0,
+    "sufficiency": "good",
+    "confirmedBySecondSource": false
+  },
+  {
+    "id": "a_0015",
+    "type": "regional_divergence",
+    "species": "western_meadowlark",
+    "region": "US-WI",
+    "years": [
+      2010,
+      2025
+    ],
+    "direction": "down",
+    "headline": "Western Meadowlark sightings are rising more slowly in Wisconsin than in other states",
+    "changePerYear": 0.9,
+    "z": 4.0,
+    "score": 4.0,
+    "sufficiency": "good",
+    "confirmedBySecondSource": false
+  },
+  {
+    "id": "a_0016",
+    "type": "regional_divergence",
+    "species": "bald_eagle",
+    "region": "US-CO",
+    "years": [
+      2010,
+      2025
+    ],
+    "direction": "up",
+    "headline": "Bald Eagle sightings are rising faster in Colorado than in other states",
+    "changePerYear": 28.6,
+    "z": 3.1,
+    "score": 3.9,
+    "sufficiency": "good",
+    "confirmedBySecondSource": true
+  },
+  {
+    "id": "a_0017",
+    "type": "sudden_change",
+    "species": "chimney_swift",
+    "region": "US-SC",
+    "years": [
+      2014,
+      2015
+    ],
+    "direction": "down",
+    "headline": "Chimney Swift sightings dropped sharply in South Carolina from 2014 to 2015",
+    "changePerYear": 11.4,
+    "z": 3.9,
+    "score": 3.9,
+    "sufficiency": "good",
+    "confirmedBySecondSource": false
+  },
+  {
+    "id": "a_0018",
+    "type": "sudden_change",
+    "species": "western_meadowlark",
+    "region": "US-WI",
+    "years": [
+      2013,
+      2013
+    ],
+    "direction": "up",
+    "headline": "Western Meadowlark sightings jumped sharply in Wisconsin in 2013",
+    "changePerYear": 0.9,
+    "z": 3.9,
+    "score": 3.9,
+    "sufficiency": "good",
+    "confirmedBySecondSource": false
+  },
+  {
+    "id": "a_0019",
+    "type": "sudden_change",
+    "species": "bald_eagle",
+    "region": "US-OH",
+    "years": [
+      2020,
+      2020
+    ],
+    "direction": "down",
+    "headline": "Bald Eagle sightings dropped sharply in Ohio in 2020",
+    "changePerYear": 21.5,
+    "z": 3.0,
+    "score": 3.8,
+    "sufficiency": "good",
+    "confirmedBySecondSource": true
+  },
+  {
+    "id": "a_0020",
+    "type": "sudden_change",
+    "species": "carolina_wren",
+    "region": "US-VT",
+    "years": [
+      2013,
+      2013
+    ],
+    "direction": "up",
+    "headline": "Carolina Wren sightings jumped sharply in Vermont in 2013",
+    "changePerYear": 25.9,
+    "z": 3.1,
+    "score": 3.8,
+    "sufficiency": "good",
+    "confirmedBySecondSource": true
+  },
+  {
+    "id": "a_0021",
+    "type": "sudden_change",
+    "species": "chimney_swift",
+    "region": "US-ND",
+    "years": [
+      2014,
+      2014
+    ],
+    "direction": "down",
+    "headline": "Chimney Swift sightings dropped sharply in North Dakota in 2014",
+    "changePerYear": 12.7,
+    "z": 5.1,
+    "score": 3.8,
+    "sufficiency": "limited",
+    "confirmedBySecondSource": false
+  },
+  {
+    "id": "a_0022",
+    "type": "sudden_change",
+    "species": "eastern_meadowlark",
+    "region": "US-LA",
+    "years": [
+      2012,
+      2012
+    ],
+    "direction": "up",
+    "headline": "Eastern Meadowlark sightings jumped sharply in Louisiana in 2012",
+    "changePerYear": 7.9,
+    "z": 3.8,
+    "score": 3.8,
+    "sufficiency": "good",
+    "confirmedBySecondSource": false
+  },
+  {
+    "id": "a_0023",
+    "type": "sudden_change",
+    "species": "western_meadowlark",
+    "region": "US-OK",
+    "years": [
+      2017,
+      2017
+    ],
+    "direction": "up",
+    "headline": "Western Meadowlark sightings jumped sharply in Oklahoma in 2017",
+    "changePerYear": 10.8,
+    "z": 5.0,
+    "score": 3.8,
+    "sufficiency": "limited",
+    "confirmedBySecondSource": false
+  },
+  {
+    "id": "a_0024",
+    "type": "sudden_change",
+    "species": "wood_thrush",
+    "region": "US-TX",
+    "years": [
+      2013,
+      2013
+    ],
+    "direction": "up",
+    "headline": "Wood Thrush sightings jumped sharply in Texas in 2013",
+    "changePerYear": 15.7,
+    "z": 3.8,
+    "score": 3.8,
+    "sufficiency": "good",
+    "confirmedBySecondSource": false
+  },
+  {
+    "id": "a_0025",
+    "type": "sudden_change",
+    "species": "western_meadowlark",
+    "region": "US-IA",
+    "years": [
+      2018,
+      2018
+    ],
+    "direction": "up",
+    "headline": "Western Meadowlark sightings jumped sharply in Iowa in 2018",
+    "changePerYear": 14.1,
+    "z": 3.7,
+    "score": 3.7,
+    "sufficiency": "good",
+    "confirmedBySecondSource": false
+  },
+  {
+    "id": "a_0026",
+    "type": "sudden_change",
+    "species": "western_meadowlark",
+    "region": "US-KS",
+    "years": [
+      2014,
+      2014
+    ],
+    "direction": "up",
+    "headline": "Western Meadowlark sightings jumped sharply in Kansas in 2014",
+    "changePerYear": 12.2,
+    "z": 3.7,
+    "score": 3.7,
+    "sufficiency": "good",
+    "confirmedBySecondSource": false
+  },
+  {
+    "id": "a_0027",
+    "type": "sudden_change",
+    "species": "carolina_wren",
+    "region": "US-NE",
+    "years": [
+      2022,
+      2022
+    ],
+    "direction": "down",
+    "headline": "Carolina Wren sightings dropped sharply in Nebraska in 2022",
+    "changePerYear": 19.6,
+    "z": 3.5,
+    "score": 3.5,
+    "sufficiency": "good",
+    "confirmedBySecondSource": false
+  },
+  {
+    "id": "a_0028",
+    "type": "sudden_change",
+    "species": "chimney_swift",
+    "region": "US-NE",
+    "years": [
+      2015,
+      2015
+    ],
+    "direction": "down",
+    "headline": "Chimney Swift sightings dropped sharply in Nebraska in 2015",
+    "changePerYear": 13.7,
+    "z": 3.5,
+    "score": 3.5,
+    "sufficiency": "good",
+    "confirmedBySecondSource": false
+  },
+  {
+    "id": "a_0029",
+    "type": "sudden_change",
+    "species": "chimney_swift",
+    "region": "US-CO",
+    "years": [
+      2016,
+      2016
+    ],
+    "direction": "up",
+    "headline": "Chimney Swift sightings jumped sharply in Colorado in 2016",
+    "changePerYear": 15.0,
+    "z": 3.4,
+    "score": 3.4,
+    "sufficiency": "good",
+    "confirmedBySecondSource": false
+  },
+  {
+    "id": "a_0030",
+    "type": "sudden_change",
+    "species": "eastern_meadowlark",
+    "region": "US-KS",
+    "years": [
+      2018,
+      2018
+    ],
+    "direction": "up",
+    "headline": "Eastern Meadowlark sightings jumped sharply in Kansas in 2018",
+    "changePerYear": 14.4,
+    "z": 3.4,
+    "score": 3.4,
+    "sufficiency": "good",
+    "confirmedBySecondSource": false
+  }
+]

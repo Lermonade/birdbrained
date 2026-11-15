@@ -1,0 +1,279 @@
+/* The year bar under the globe. Same palette as the sidebar: the look's sky and ink
+   (src/looks), thin ink lines, and the sidebar's mint accent. */
+.timeline {
+  --ink: var(--landing-ink, #fbf1dc);
+  --ink-dim: var(--landing-ink-dim, rgba(251, 241, 220, 0.84));
+  --sky-solid: var(--sky, #0b1d2c);
+  --accent: #9fd1b2;
+  --line: color-mix(in srgb, var(--ink) 22%, transparent);
+  --thumb: 18px;
+
+  position: absolute;
+  bottom: 18px;
+  left: 50%;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: min(620px, calc(100% - 32px));
+  padding: 0.75rem 1.1rem 0.6rem 0.8rem;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--sky-solid) 86%, transparent);
+  backdrop-filter: blur(8px);
+  color: var(--ink);
+  box-shadow: 0 12px 30px -12px rgba(0, 0, 0, 0.55);
+  transform: translate(calc(-50% + var(--dx, 0px)), var(--dy, 0px));
+}
+
+.dragging {
+  box-shadow: 0 18px 38px -12px rgba(0, 0, 0, 0.7);
+  user-select: none;
+}
+
+/* The handle for moving the whole bar */
+.grip {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 14px;
+  margin: -0.35rem 0 0.1rem;
+  border: none;
+  background: transparent;
+  color: var(--ink-dim);
+  opacity: 0.55;
+  cursor: grab;
+  touch-action: none;
+  transition: opacity 0.15s ease;
+}
+
+.grip:hover,
+.grip:focus-visible,
+.dragging .grip {
+  opacity: 1;
+  color: var(--accent);
+}
+
+.dragging .grip {
+  cursor: grabbing;
+}
+
+.grip:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+  border-radius: 6px;
+}
+
+/* Play / pause */
+.play {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border: none;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--sky-solid);
+  cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    filter 0.15s ease;
+}
+
+.play:hover {
+  filter: brightness(1.08);
+  transform: scale(1.05);
+}
+
+.play:disabled {
+  opacity: 0.4;
+  cursor: default;
+  transform: none;
+}
+
+.play:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+}
+
+.body {
+  flex: 1;
+  min-width: 0;
+}
+
+/* 2010 → 2025 */
+.readout {
+  display: flex;
+  align-items: baseline;
+  gap: 0.45rem;
+  margin-bottom: 0.35rem;
+  line-height: 1;
+}
+
+.year {
+  font-family: var(--display);
+  font-size: 1.35rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+.arrow {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+/* The rail, the chosen years on it, and a tick per year. The rail is inset by half
+   a thumb so the ticks line up with where the thumbs' centers can go. */
+.track {
+  position: relative;
+  height: 28px;
+}
+
+.rail {
+  position: absolute;
+  top: 50%;
+  right: calc(var(--thumb) / 2);
+  left: calc(var(--thumb) / 2);
+  height: 4px;
+  border-radius: 2px;
+  background: var(--line);
+  transform: translateY(-50%);
+}
+
+.range {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--from);
+  right: calc(100% - var(--to));
+  border-radius: 2px;
+  background: var(--accent);
+}
+
+.tick {
+  position: absolute;
+  top: 50%;
+  width: 2px;
+  height: 6px;
+  border-radius: 1px;
+  background: var(--line);
+  transform: translate(-50%, 4px);
+}
+
+.tickMajor {
+  height: 9px;
+  background: color-mix(in srgb, var(--ink) 40%, transparent);
+}
+
+.tickOn {
+  background: var(--accent);
+}
+
+/* Two native sliders stacked on the rail: keyboard and screen readers work as usual.
+   Only their thumbs take the pointer, so either one can be grabbed. */
+.thumb {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  background: transparent;
+  pointer-events: none;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.thumb::-webkit-slider-runnable-track {
+  height: 100%;
+  background: transparent;
+}
+
+.thumb::-moz-range-track {
+  background: transparent;
+}
+
+.thumb::-webkit-slider-thumb {
+  width: var(--thumb);
+  height: var(--thumb);
+  margin-top: calc((28px - var(--thumb)) / 2);
+  border: 3px solid var(--sky-solid);
+  border-radius: 50%;
+  background: var(--ink);
+  box-shadow: 0 0 0 1.5px var(--accent);
+  cursor: grab;
+  pointer-events: auto;
+  appearance: none;
+  -webkit-appearance: none;
+  transition: transform 0.15s ease;
+}
+
+.thumb::-moz-range-thumb {
+  box-sizing: border-box;
+  width: var(--thumb);
+  height: var(--thumb);
+  border: 3px solid var(--sky-solid);
+  border-radius: 50%;
+  background: var(--ink);
+  box-shadow: 0 0 0 1.5px var(--accent);
+  cursor: grab;
+  pointer-events: auto;
+  transition: transform 0.15s ease;
+}
+
+.thumb:hover::-webkit-slider-thumb,
+.thumb:active::-webkit-slider-thumb {
+  transform: scale(1.15);
+}
+
+.thumb:hover::-moz-range-thumb,
+.thumb:active::-moz-range-thumb {
+  transform: scale(1.15);
+}
+
+.thumb:active::-webkit-slider-thumb {
+  cursor: grabbing;
+}
+
+.thumb:focus-visible {
+  outline: none;
+}
+
+.thumb:focus-visible::-webkit-slider-thumb {
+  box-shadow: 0 0 0 3px var(--accent);
+}
+
+.thumb:focus-visible::-moz-range-thumb {
+  box-shadow: 0 0 0 3px var(--accent);
+}
+
+/* Year labels under the major ticks */
+.labels {
+  position: relative;
+  height: 1rem;
+  margin: 0 calc(var(--thumb) / 2);
+  color: var(--ink-dim);
+  font-size: 0.7rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.labels span {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+}
+
+@media (max-width: 600px) {
+  .timeline {
+    gap: 0.7rem;
+    padding: 0.6rem 0.8rem 0.5rem 0.6rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .play,
+  .thumb::-webkit-slider-thumb,
+  .thumb::-moz-range-thumb {
+    transition: none;
+  }
+}

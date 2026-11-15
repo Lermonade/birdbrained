@@ -1,6 +1,6 @@
 # BirdBrained backend
 
-A FastAPI server for the API contract in the master spec. It serves the real data in `data/out/` (eBird and iNaturalist through GBIF, 2010 to 2025), falls back to mock data for any file that is missing, and `/api/ask` runs the AI analyst (OpenAI).
+A FastAPI server for the API contract in the master spec. It serves the real data in `data/out/` (eBird and iNaturalist through GBIF, 2010 to 2025), falls back to mock data for any file that is missing, and `/api/ask` runs the AI analyst.
 
 The app shows the corrected index: a species' share of all bird sightings in a state and year, which cancels out the growth in birders. Trends, anomalies, the globe data and the analyst all use it, with raw sightings as context. (For a few hours on Nov 14 the app used raw sightings only; it switched back the same evening.)
 
@@ -79,12 +79,12 @@ These are what the server does today. Tell the team before changing them.
 - `POST /api/ask` accepts optional `year`, `start` and `end` next to `question`, `species` and `region`. Send the same `start` and `end` as `/api/grab_data`.
 - Anomaly rules, on the corrected index: *regional divergence* is a state whose trend is more than 3 robust z-scores from the species' other states; *strong trend* is beyond 5% a year with an interval that excludes zero (the spec's rule); *sudden change* is a year (or run of years) that departs from the state's trend by more than 20% and 3 z-scores, after removing that year's nationwide jump and allowing for counting noise. The first two years are not checked for sudden changes. The types score on different scales, so the feed interleaves them: the best of each type, then the second best, and so on.
 - `GET /api/grab_data`: `species` defaults to all, `start` and `end` to the full year range. Each point has `changePct` (the corrected change over the window, from the trend fitted to those years, so one odd year can't flip it), `changePerYear` with `low` and `high`, `direction` (`up` or `down`, the best estimate from that state's own data) and `confident` (false when the 95% interval crosses zero; the globe shows only `direction`, up or down, and the flag is there for the detail panel and the analyst). `startIndex` and `endIndex` are the corrected index in the two years. `rawChangePct` and `rawDirection` are the same thing for raw sightings, fitted the same way, for the Raw vs Corrected toggle: the frontend can flip between the two sets of fields without a second request. `startCount` and `endCount` are the raw sighting counts in the two years. `height` and `rawHeight` are ready-made pillar heights for the globe (the size of the change, whatever its direction): 0.05 plus 0.1 per doubling or halving, capped at 0.4, so a halving and a doubling are the same height. `status` is `insufficient` when the window has fewer than 3 years with enough data; then the change fields are null. States with no records in either year are left out.
-- `POST /api/ask` also returns `model`: the OpenAI model that answered, or `null` when no model was needed.
+- `POST /api/ask` also returns `model`: the model that answered, or `null` when no model was needed.
 - When the analyst can't answer, `POST /api/ask` returns 503 with the code `analyst_unavailable`. The frontend should show a "try again" state.
 
-## AI analyst (OpenAI)
+## AI analyst
 
-Put your key in `backend/.env` (git ignores this file). The OpenAI account needs billing set up:
+Put your key in `backend/.env` (git ignores this file):
 
 ```
 OPENAI_API_KEY=your-key
@@ -95,10 +95,8 @@ Without a key, `/api/ask` returns a mock answer marked "Mock answer", so the fro
 How a question is answered (`analyst.py`, with the tools in `tools.py` and the prompt in `prompts.py`):
 
 1. The server runs `check_sampling` itself. If the data is insufficient, it answers that without calling the model.
-2. The model gets the question and the 8 tools, calls the tools it wants (at most 8 calls), and returns the answer in the spec's JSON shape, enforced by OpenAI's structured outputs. Evidence that cites a tool which never ran is removed.
+2. The model gets the question and the 8 tools, calls the tools it wants (at most 8 calls), and returns the answer in the spec's JSON shape, enforced by structured outputs. Evidence that cites a tool which never ran is removed.
 3. Models are tried in the order of `OPENAI_MODELS` (default `gpt-6.1-terra,gpt-6-luna`). A model that fails is skipped for 5 minutes. Each call times out after 20 seconds, and a question gets 45 seconds in total.
 4. Every good answer is saved in `backend/cache/` (git ignores it). If every model fails, the saved answer for the same species and state is returned with `"cached": true`. With `ANALYST_CACHE_FIRST=1`, saved answers are served before asking the model; use that for the live demo.
 
 `python check_openai.py` tests each model with one real tool call and says which ones work right now. Run it before a demo.
-
-The analyst used Gemini until Nov 14. It was switched because Google's Flash models kept returning "high demand" errors all day.

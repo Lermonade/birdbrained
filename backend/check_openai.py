@@ -1,4 +1,4 @@
-"""Checks that the OpenAI key works and that each model can call one of our tools.
+"""Checks that the API key works and that each model can call one of our tools.
 
     python check_openai.py      (run from the backend folder, with the venv active)
 

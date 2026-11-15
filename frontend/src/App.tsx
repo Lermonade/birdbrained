@@ -6,6 +6,7 @@ import About from "./pages/about/About";
 import NotFound from "./pages/not_found/NotFound";
 
 import Navbar from "./components/navbar/Navbar";
+import LookBar from "./looks/LookBar";
 
 function App() {
   return (
@@ -23,6 +24,8 @@ function App() {
         <Route path="/about" element={<About />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
+
+      <LookBar />
     </BrowserRouter>
   );
 }

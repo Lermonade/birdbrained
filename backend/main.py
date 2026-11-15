@@ -11,6 +11,7 @@ import os
 from fastapi import FastAPI, Query, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 from starlette.exceptions import HTTPException as StarletteHTTPException
@@ -28,6 +29,8 @@ app.add_middleware(
     allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
+# /api/counts for every species is about 900 KB of JSON; gzipped it's a fraction of that
+app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 
 class ApiError(Exception):
@@ -100,6 +103,19 @@ def get_series(species: str) -> dict:
     """Raw and corrected index for every region and year of one species."""
     require_species(species)
     return store.series(species)
+
+
+@app.get("/api/counts")
+def get_counts(species: str | None = None) -> dict:
+    """Each region's sighting count for every year, for the globe's timeline.
+
+    species is a comma-separated list of keys (default: all). Regions where a species has no
+    records are left out.
+    """
+    keys = [k.strip() for k in species.split(",") if k.strip()] if species else [s["key"] for s in store.species()]
+    for key in keys:
+        require_species(key)
+    return {"years": store.years(), "species": {key: store.species_counts(key) for key in keys}}
 
 
 @app.get("/api/anomalies")

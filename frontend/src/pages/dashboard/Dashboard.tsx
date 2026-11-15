@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { useLocation, useNavigate } from "react-router";
 
 import GlobeVisualization, {
@@ -12,11 +12,12 @@ import GlobeVisualization, {
 import DashboardSidebar from "../../components/sidebar/Sidebar";
 import DetailPanel from "../../components/detail_panel/DetailPanel";
 import Landing from "../../components/landing/Landing";
-import Starfield from "../../components/landing/Starfield";
 import type { Scene } from "../../components/landing/timeline";
+import Timeline from "../../components/timeline/Timeline";
 import { api, API_BASE } from "../../api/client";
-import type { GrabData, Region, Species } from "../../api/client";
+import type { CountsData, GrabData, Region, Species } from "../../api/client";
 import { ContextProvider, useContextSettings } from "../../context/Context";
+import { useLook } from "../../looks";
 import { parsePointId, toDatasets, type SpeciesSightings } from "./globeData";
 
 import styles from "./dashboard.module.css";
@@ -48,15 +49,21 @@ const PLACEHOLDER_SPECIES = [
   { name: "Eagle", sightings: 318 },
 ];
 
-// Sightings across all states in the last year, for the sidebar's species list
-function sightings(grab: GrabData | undefined): number {
-  return grab?.species[0]?.dataPoints.reduce((sum, point) => sum + point.endCount, 0) ?? 0;
+// The detail panel waits this long after the years stop moving before it refetches
+const PANEL_FETCH_DELAY_MS = 250;
+
+// Sightings across all regions in the last year, for the sidebar's species list
+function sightings(perRegion: Record<string, number[]> | undefined): number {
+  let total = 0;
+  for (const perYear of Object.values(perRegion ?? {})) total += perYear[perYear.length - 1] ?? 0;
+  return total;
 }
 
 function DashboardContent() {
   // "/" plays the landing over the globe; "/dashboard" is the globe with the sidebar
   const intro = useLocation().pathname === "/";
   const navigate = useNavigate();
+  const look = useLook();
   const enter = useCallback(() => navigate("/dashboard"), [navigate]);
 
   const {
@@ -71,8 +78,14 @@ function DashboardContent() {
   // Backend data
   const [regions, setRegions] = useState<Region[]>([]);
   const [catalog, setCatalog] = useState<Species[]>([]);
-  const [grabs, setGrabs] = useState<Record<string, GrabData>>({});
+  const [counts, setCounts] = useState<CountsData | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // The timeline's years: pillars show sightings in `end`; the detail panel measures the
+  // change from `start` to `end`. Null until the data has loaded, then the full range.
+  const [range, setRange] = useState<{ start: number; end: number } | null>(null);
+  const [playing, setPlaying] = useState(false);
+  const changeRange = useCallback((start: number, end: number) => setRange({ start, end }), []);
 
   // The state clicked on the globe, and the species whose pillar or point it was
   const [selected, setSelected] = useState<{ speciesKey: string; region: string } | null>(null);
@@ -94,10 +107,12 @@ function DashboardContent() {
     if (intro) {
       setSelected(null);
       setFocus(US_VIEW);
+      setPlaying(false);
+      if (counts) setRange({ start: counts.years[0], end: counts.years[counts.years.length - 1] });
     }
   }
 
-  // States, species and each species' globe data, once.
+  // Regions, species and every species' sightings per year, once (three requests).
   // The sidebar numbers species 1, 2, 3... in list order: the placeholders first,
   // so their numbers stay the same when the backend's species are added after them.
   useEffect(() => {
@@ -105,23 +120,18 @@ function DashboardContent() {
 
     updateSpeciesList(PLACEHOLDER_SPECIES);
 
-    Promise.all([api.regions(), api.species()])
-      .then(async ([regionsResult, speciesResult]) => {
-        const grabResults = await Promise.all(speciesResult.map(s => api.grabData(s.key)));
+    Promise.all([api.regions(), api.species(), api.counts()])
+      .then(([regionsResult, speciesResult, countsResult]) => {
         if (cancelled) return;
-
-        const byKey: Record<string, GrabData> = {};
-        speciesResult.forEach((s, i) => {
-          byKey[s.key] = grabResults[i];
-        });
 
         setRegions(regionsResult);
         setCatalog(speciesResult);
-        setGrabs(byKey);
+        setCounts(countsResult);
+        setRange({ start: countsResult.years[0], end: countsResult.years[countsResult.years.length - 1] });
 
         updateSpeciesList([
           ...PLACEHOLDER_SPECIES,
-          ...speciesResult.map(s => ({ name: s.commonName, sightings: sightings(byKey[s.key]) })),
+          ...speciesResult.map(s => ({ name: s.commonName, sightings: sightings(countsResult.species[s.key]) })),
         ]);
         const defaultIndex = speciesResult.findIndex(s => s.key === DEFAULT_SPECIES);
         void addSelectedSpecies(PLACEHOLDER_SPECIES.length + (defaultIndex === -1 ? 0 : defaultIndex) + 1);
@@ -152,13 +162,14 @@ function DashboardContent() {
       }
 
       const key = catalog[id - PLACEHOLDER_SPECIES.length - 1]?.key;
-      const points = key ? grabs[key]?.species[0]?.dataPoints : undefined;
-      if (key && points) real.push({ key, name: species.name, color: species.color, points });
+      const perRegion = key ? counts?.species[key] : undefined;
+      if (key && perRegion) real.push({ key, name: species.name, color: species.color, counts: perRegion });
     }
 
-    const year = Object.values(grabs)[0]?.endYear;
-    return [...(year === undefined ? NO_DATASETS : toDatasets(real, year)), ...placeholders];
-  }, [selectedSpeciesIds, allSpecies, speciesData, catalog, grabs]);
+    const yearIndex = counts && range ? counts.years.indexOf(range.end) : -1;
+    const shown = yearIndex === -1 || !range ? NO_DATASETS : toDatasets(real, regions, yearIndex, range.end);
+    return [...shown, ...placeholders];
+  }, [selectedSpeciesIds, allSpecies, speciesData, catalog, counts, regions, range]);
 
   const hasPlaceholder = selectedSpeciesIds.some(id => id <= PLACEHOLDER_SPECIES.length);
   const loading = catalog.length === 0 && error === null;
@@ -169,8 +180,35 @@ function DashboardContent() {
     setFocus({ lat: point.lat, lng: point.lng, altitude: STATE_ALTITUDE });
   }, []);
 
+  // The detail panel's numbers: the clicked species' change over the timeline's years.
+  // Fetched once the years stop moving; the last answer stays up meanwhile.
+  const [panelGrab, setPanelGrab] = useState<GrabData | null>(null);
+  const panelSpecies = selected?.speciesKey;
+
+  useEffect(() => {
+    if (!panelSpecies || !range) return;
+
+    let cancelled = false;
+    const timer = window.setTimeout(() => {
+      api
+        .grabData(panelSpecies, range.start, range.end)
+        .then(result => {
+          if (!cancelled) setPanelGrab(result);
+        })
+        .catch(() => {
+          // The panel keeps the last numbers it had
+        });
+    }, PANEL_FETCH_DELAY_MS);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [panelSpecies, range]);
+
   // The detail panel, while the clicked species is still selected
-  const selectedGrab = selected ? grabs[selected.speciesKey] : undefined;
+  const selectedGrab =
+    selected && panelGrab?.species[0]?.key === selected.speciesKey ? panelGrab : undefined;
   const selectedSpeciesId = selected
     ? catalog.findIndex(s => s.key === selected.speciesKey) + PLACEHOLDER_SPECIES.length + 1
     : undefined;
@@ -247,46 +285,60 @@ function DashboardContent() {
       className={[styles.dashboard, intro ? styles.intro : "", isDragging ? styles.dragging : ""]
         .filter(Boolean)
         .join(" ")}
+      // Where the globe's center is. Both glide (see dashboard.module.css), so the globe
+      // and anything a backdrop puts behind it slide into place as the sidebar comes in.
+      style={
+        {
+          "--sidebar-w": `${sidebarWidth}px`,
+          "--globe-cx": intro ? "50%" : `calc(50% + ${(sidebarWidth + 6) / 2}px)`,
+          "--globe-cy": intro ? "50%" : "calc(50% + var(--nav-h) / 2)",
+        } as CSSProperties
+      }
     >
-      <Starfield scene={scene} />
+      <look.Backdrop key={look.id} scene={scene} />
 
+      {/* The globe always fills the screen, so its canvas never resizes; it's shifted
+          to sit beside the sidebar instead */}
+      <section ref={globeFrame} className={styles.visualization}>
+        <GlobeVisualization
+          ref={globe}
+          datasets={landed ? datasets : NO_DATASETS}
+          // The landing always lands on pillars over the textured Earth
+          visualizationType={intro ? VisualizationType.PILLARS : settings.dataDisplayType}
+          earthType={settings.earthDisplayType}
+          onPointClick={handlePointClick}
+          // On the landing, the scroll moves the camera instead
+          focus={intro ? null : focus}
+          transparentBackground
+          art={look.art}
+        />
+      </section>
+
+      {/* Sidebar | resize handle | the globe's overlays. The sidebar waits off to the
+          left on the landing and slides in with the dashboard. */}
       <div
         className={styles.workspace}
-        // The landing has the globe alone; the sidebar comes in on the dashboard
-        style={
-          intro ? undefined : { gridTemplateColumns: `${sidebarWidth}px 6px minmax(0, 1fr)` }
-        }
+        style={{ gridTemplateColumns: `${sidebarWidth}px 6px minmax(0, 1fr)` }}
       >
-        {!intro && <DashboardSidebar />}
+        <div className={styles.sidebarSlot} inert={intro} aria-hidden={intro || undefined}>
+          <DashboardSidebar />
+        </div>
 
-        {!intro && (
-          <div
-            className={styles.resizeHandle}
-            onPointerDown={handlePointerDown}
-            onKeyDown={handleDividerKeyDown}
-            role="separator"
-            aria-label="Resize sidebar"
-            aria-orientation="vertical"
-            aria-valuenow={sidebarWidth}
-            aria-valuemin={MIN_SIDEBAR_WIDTH}
-            aria-valuemax={MAX_SIDEBAR_WIDTH}
-            tabIndex={0}
-          />
-        )}
+        <div
+          className={styles.resizeHandle}
+          onPointerDown={handlePointerDown}
+          onKeyDown={handleDividerKeyDown}
+          role="separator"
+          aria-label="Resize sidebar"
+          aria-orientation="vertical"
+          aria-valuenow={sidebarWidth}
+          aria-valuemin={MIN_SIDEBAR_WIDTH}
+          aria-valuemax={MAX_SIDEBAR_WIDTH}
+          tabIndex={intro ? -1 : 0}
+          inert={intro}
+        />
 
-        <section ref={globeFrame} className={styles.visualization}>
-          <GlobeVisualization
-            ref={globe}
-            datasets={landed ? datasets : NO_DATASETS}
-            // The landing always lands on pillars over the textured Earth
-            visualizationType={intro ? VisualizationType.PILLARS : settings.dataDisplayType}
-            earthType={settings.earthDisplayType}
-            onPointClick={handlePointClick}
-            // On the landing, the scroll moves the camera instead
-            focus={intro ? null : focus}
-            transparentBackground
-          />
-
+        <div className={styles.overlays}>
           {!intro && !hasPlaceholder && loading && <div className={styles.status}>Loading data...</div>}
 
           {!intro && !hasPlaceholder && error && (
@@ -313,7 +365,18 @@ function DashboardContent() {
               onClose={() => setSelected(null)}
             />
           )}
-        </section>
+
+          {!intro && counts && range && (
+            <Timeline
+              years={counts.years}
+              start={range.start}
+              end={range.end}
+              onChange={changeRange}
+              playing={playing}
+              onPlayingChange={setPlaying}
+            />
+          )}
+        </div>
       </div>
 
       <Landing

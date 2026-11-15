@@ -198,11 +198,6 @@ function AnswerView({ result }: { result: AskResponse }) {
           <p>{answer.could_be_artifact}</p>
         </>
       )}
-
-      <p className={styles.footnote}>
-        {result.cached ? "Saved answer" : `Answered by ${result.model ?? "the analyst"}`} after{" "}
-        {result.toolCalls.length} data checks. Causes are hypotheses, not findings.
-      </p>
     </section>
   );
 }

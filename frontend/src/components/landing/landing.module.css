@@ -1,9 +1,10 @@
 /* The landing is one pinned scene over the live globe. Landing.tsx moves the
    pieces by writing styles straight onto them as you scroll. */
 .landing {
-  --night: #000011;
-  --paper: #f7f5ef;
-  --paper-dim: rgba(247, 245, 239, 0.78);
+  /* The look (src/looks) sets these; the fallbacks are the old night sky */
+  --night: var(--landing-bird-eye, #000011);
+  --paper: var(--landing-ink, #f7f5ef);
+  --paper-dim: var(--landing-ink-dim, rgba(247, 245, 239, 0.78));
 
   position: absolute;
   inset: 0;
@@ -13,15 +14,6 @@
 
 .landing[data-state="gone"] {
   visibility: hidden;
-  pointer-events: none;
-}
-
-/* Stars behind the globe; stays on the dashboard too */
-.starfield {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
   pointer-events: none;
 }
 
@@ -217,6 +209,11 @@
 
 .cueArrow {
   animation: nudge 1.8s ease-in-out infinite;
+}
+
+.cueArrowSecond {
+  margin-top: -0.75rem;
+  animation-delay: 0.2s;
 }
 
 @keyframes nudge {

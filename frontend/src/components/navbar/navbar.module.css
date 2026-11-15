@@ -28,8 +28,14 @@
 .logoImage {
   width: 36px;
   height: 36px;
-  object-fit: contain;
-  transition: filter 0.6s ease;
+  background-color: currentColor;
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  transition: background-color 0.6s ease;
 }
 
 .navLinks {
@@ -72,8 +78,8 @@
 }
 
 .withBackground {
-  background-color: var(--bg);
-  border-bottom-color: #000;
+  background-color: var(--sky, #0b1d2c);
+  border-bottom-color: color-mix(in srgb, var(--landing-ink, #fbf1dc) 25%, transparent);
 }
 
 /* Floats over the globe on "/" and "/dashboard" */
@@ -85,18 +91,20 @@
   z-index: 20;
 }
 
-/* Light on the dark globe while the landing is up */
+/* On the landing it takes the look's ink (src/looks): light on a dark sky, dark on paper */
 .onLanding .logo,
 .onLanding .navLink {
-  color: var(--bg);
+  color: var(--landing-ink, var(--bg));
 }
 
-.onLanding .logoImage {
-  filter: invert(1);
+.onLanding .navLink:global(.active) {
+  color: var(--landing-ink, #ffffff);
+  text-decoration: underline;
+  text-underline-offset: 6px;
 }
 
 .onLanding .navLink:hover {
-  color: #ffffff;
+  color: var(--landing-ink, #ffffff);
   text-decoration: underline;
   text-underline-offset: 6px;
 }

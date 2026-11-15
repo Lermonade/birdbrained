@@ -1,9 +1,8 @@
-"""The "Ask why" analyst: an OpenAI model with function calling over our tools.
+"""The "Ask why" analyst: a model with function calling over our tools.
 
 `ask` returns {"answer", "toolCalls", "cached", "model"}. The answer has the
 shape in the spec's AI analyst section. Every model call stays in this module so
-the model can be swapped. Switched from Gemini to OpenAI on Nov 14, after
-Gemini's Flash models kept failing with "high demand" errors.
+the model can be swapped.
 
 Reliability:
 - Models are tried in order (OPENAI_MODELS). A model that fails is skipped for
@@ -148,7 +147,7 @@ def _run_model(model: str, message: str, deadline: float) -> tuple[dict, list[di
         if not function_calls:
             return _parse_answer(response.output_text, calls), calls
 
-        # The model's whole turn goes back (reasoning items included, as OpenAI requires), then the results.
+        # The model's whole turn goes back (reasoning items included, as the API requires), then the results.
         inputs += response.output
         for call in function_calls:
             try:
@@ -253,7 +252,7 @@ def _insufficient_answer(species: dict, region: dict, sampling: dict) -> dict:
 
 
 def _mock_answer(species: dict, region: dict) -> dict:
-    """Stand-in for running without an OpenAI key: real numbers from the data, placeholder causes."""
+    """Stand-in for running without an API key: real numbers from the data, placeholder causes."""
     time.sleep(MOCK_DELAY_S)
     args = {"species": species["key"], "region": region["id"]}
     detail = store.detail(species["key"], region["id"])

@@ -1,0 +1,133 @@
+/* What's behind the globe in each look. useSceneProgress keeps --p at the landing's
+   scroll progress (0 at the title, 1 on the dashboard); the layers move off that.
+   Dashboard.tsx sets --globe-cx / --globe-cy to the globe's center. */
+.backdrop {
+  --p: 0;
+
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  isolation: isolate;
+}
+
+.grain {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.flock {
+  position: absolute;
+  left: 0;
+  animation: drift linear infinite;
+  will-change: transform;
+}
+
+@keyframes drift {
+  from {
+    transform: translateX(-30vw);
+  }
+  to {
+    transform: translateX(112vw);
+  }
+}
+
+.wingbeat {
+  transform-box: fill-box;
+  transform-origin: 50% 65%;
+  animation: wingbeat 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes wingbeat {
+  to {
+    transform: scaleY(0.25);
+  }
+}
+
+/* ---------- Park poster ---------- */
+
+/* Half again as tall as the screen: the landing shows its lower two thirds, with the
+   sunset; scrolling slides it down to the dark upper two thirds. */
+.sky {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 150%;
+  transform: translateY(calc((var(--p) - 1) * 33.333%));
+  background: linear-gradient(
+    #0b1d2c 0 14%,
+    #0f2535 14% 28%,
+    #14303f 28% 42%,
+    #1a3a4c 42% 54%,
+    #24405a 54% 64%,
+    #3b426a 64% 72%,
+    #5e4a74 72% 79%,
+    #96546f 79% 85%,
+    #cf6a5c 85% 90%,
+    #e9965a 90% 95%,
+    #f5c877 95% 100%
+  );
+}
+
+.sun {
+  position: absolute;
+  top: 80%;
+  left: 70%;
+  width: 22vmin;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: #f8dc90;
+  box-shadow:
+    0 0 0 3.5vmin rgba(246, 196, 116, 0.5),
+    0 0 0 8vmin rgba(240, 160, 100, 0.25);
+  transform: translate(-50%, -50%) translateY(calc(var(--p) * 75vh));
+}
+
+/* --sink: how far each ridge drops as you take off; nearer ones drop faster */
+.ridge {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 46vh;
+  max-width: none;
+  transform: translateY(calc(var(--p) * var(--sink)));
+}
+
+/* ---------- Block print ---------- */
+
+/* The moon is the middle 2/5 of this box; the carved rings around it fill the rest */
+.moon {
+  position: absolute;
+  top: calc(var(--globe-cy, 50%) - 5vh);
+  left: calc(var(--globe-cx, 50%) + 5vh);
+  width: 270vh;
+  height: 270vh;
+  max-width: none;
+  /* No transition of its own: --globe-cx / --globe-cy already glide */
+  transform: translate(-50%, -50%) translateY(calc((1 - var(--p)) * 78vh));
+}
+
+.reeds {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 36vh;
+  max-width: none;
+  transform: translateY(calc(var(--p) * 17vh));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flock,
+  .wingbeat {
+    animation: none;
+  }
+
+  .flock {
+    transform: translateX(58vw);
+  }
+}

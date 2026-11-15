@@ -98,7 +98,6 @@ function DashboardContent() {
 
   // Regions, species and every species' sightings per year, once (three requests).
   // The sidebar numbers species 1, 2, 3... in the backend's list order.
-  // so their numbers stay the same when the backend's species are added after them.
   useEffect(() => {
     let cancelled = false;
 

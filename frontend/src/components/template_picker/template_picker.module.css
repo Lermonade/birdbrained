@@ -1,0 +1,153 @@
+/* The templates in the sidebar. Lives inside .sidebar, so it picks up the look's sky and
+   ink from there (--text, --muted, --line, --accent); the fallbacks are for anywhere else. */
+.picker {
+  --ink: var(--text, var(--landing-ink, #fbf1dc));
+  --ink-dim: var(--muted, var(--landing-ink-dim, rgba(251, 241, 220, 0.84)));
+  --rule: var(--line, color-mix(in srgb, var(--ink) 22%, transparent));
+  --rule-strong: var(--line-strong, color-mix(in srgb, var(--ink) 40%, transparent));
+  --mint: var(--accent, #9fd1b2);
+
+  flex-shrink: 0;
+  margin-top: 2rem;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.85rem;
+}
+
+.heading {
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 700;
+}
+
+.all {
+  padding: 0.2rem 0;
+  border: none;
+  background: transparent;
+  color: var(--ink-dim);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.all:hover:not(:disabled),
+.all:focus-visible {
+  color: var(--mint);
+  outline: none;
+}
+
+.all:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  list-style: none;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  width: 100%;
+  padding: 0.4rem 0.6rem 0.4rem 0.4rem;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.row:hover:not(:disabled),
+.row:focus-visible {
+  background: color-mix(in srgb, var(--ink) 8%, transparent);
+  outline: none;
+}
+
+.row:focus-visible {
+  border-color: var(--rule-strong);
+}
+
+/* On: the bird is on the globe */
+.row[aria-pressed="true"] {
+  border-color: var(--mint);
+  background: color-mix(in srgb, var(--mint) 12%, transparent);
+}
+
+.row:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.thumb {
+  flex: none;
+  width: 42px;
+  height: 42px;
+  border-radius: 7px;
+  object-fit: cover;
+}
+
+.text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  gap: 0.1rem;
+}
+
+.name {
+  font-size: 0.9rem;
+  font-weight: 650;
+  line-height: 1.25;
+}
+
+.where {
+  overflow: hidden;
+  color: var(--ink-dim);
+  font-size: 0.75rem;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The tick box, at the right */
+.box {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border: 1.5px solid var(--rule-strong);
+  border-radius: 5px;
+  color: var(--sky, #0b1d2c);
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.row[aria-pressed="true"] .box {
+  border-color: var(--mint);
+  background: var(--mint);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .row,
+  .box,
+  .all {
+    transition: none;
+  }
+}

@@ -62,27 +62,33 @@
   box-shadow: inset 0 0 0 1px var(--line);
 }
 
-/* Numbers sit under the ramp where their color falls */
+/* A little room either side, so the end numbers stay inside the card */
+.scale {
+  padding: 0 0.75rem;
+}
+
+/* Numbers sit under their tick mark, where their color falls on the ramp */
 .ticks {
   position: relative;
   width: 150px;
-  height: 1.3rem;
-  margin-top: 0.15rem;
+  height: 1.5rem;
 }
 
 .tick {
   position: absolute;
   top: 0;
-  padding-top: 5px;
-  border-left: 1px solid var(--ink-dim);
+  width: 1px;
+  height: 4px;
+  background: var(--ink-dim);
+}
+
+.tickLabel {
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  transform: translateX(-50%);
   color: var(--ink-dim);
   font-size: 0.75rem;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
-}
-
-.note {
-  margin: 0.2rem 0 0;
-  color: var(--ink-dim);
-  font-size: 0.68rem;
 }

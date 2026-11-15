@@ -1,6 +1,7 @@
 // The key to the globe: how big a stamp is for how many sightings, or what the
 // heatmap's colors mean. Both read the globe's own scales, so they always match it.
 
+import type { Basis } from "../../api/client";
 import { VisualizationType } from "../globe_visualization/GlobeVisualization";
 import { heatmapCss, heatmapPosition, STAMP_MAX_DEG, stampRadius } from "../globe_visualization/scales";
 import styles from "./legend.module.css";
@@ -9,6 +10,7 @@ interface LegendProps {
   type: VisualizationType;
   maxCount: number; // the top of the stamps' scale (see globeData.ts maxCount)
   heatmapMax: number; // the darkest heatmap color (see globeData.ts maxRegionTotal)
+  basis: Basis;
   year: number;
 }
 
@@ -50,30 +52,27 @@ function heatmapValues(max: number): number[] {
   return [...new Set([max, max / 10, max / 100].map(roundNicely))];
 }
 
-export default function Legend({ type, maxCount, heatmapMax, year }: LegendProps) {
+export default function Legend({ type, maxCount, heatmapMax, basis, year }: LegendProps) {
+  const title = `${basis === "corrected" ? "Corrected sightings" : "Sightings"} in ${year}`;
+
   if (type === VisualizationType.HEATMAP) {
     return (
       <aside className={styles.legend} aria-label="Heatmap key">
-        <h2 className={styles.title}>Sightings per state, {year}</h2>
-        <div className={styles.ramp} style={{ backgroundImage: heatmapCss() }} />
-        <div className={styles.ticks}>
-          {heatmapValues(heatmapMax).map(value => {
-            const position = heatmapPosition(value, heatmapMax);
-            return (
+        <h2 className={styles.title}>{title}</h2>
+        <div className={styles.scale}>
+          <div className={styles.ramp} style={{ backgroundImage: heatmapCss() }} />
+          <div className={styles.ticks}>
+            {heatmapValues(heatmapMax).map(value => (
               <span
                 key={value}
                 className={styles.tick}
-                style={{
-                  left: `${position * 100}%`,
-                  transform: `translateX(${position > 0.9 ? "-100%" : "-50%"})`,
-                }}
+                style={{ left: `${heatmapPosition(value, heatmapMax) * 100}%` }}
               >
-                {value.toLocaleString()}
+                <span className={styles.tickLabel}>{value.toLocaleString()}</span>
               </span>
-            );
-          })}
+            ))}
+          </div>
         </div>
-        <p className={styles.note}>Estimated from color, all species shown</p>
       </aside>
     );
   }
@@ -86,7 +85,7 @@ export default function Legend({ type, maxCount, heatmapMax, year }: LegendProps
 
   return (
     <aside className={styles.legend} aria-label="Stamp size key">
-      <h2 className={styles.title}>Sightings in {year}</h2>
+      <h2 className={styles.title}>{title}</h2>
       <svg className={styles.key} width={KEY_WIDTH} height={height} role="img"
         aria-label={values.map(v => v.toLocaleString()).join(", ") + " sightings"}>
         {marks.map(({ value, r, top, labelY }) => (

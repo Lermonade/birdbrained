@@ -23,6 +23,9 @@ export interface Region {
   season?: "north" | "south";
 }
 
+/** Raw sightings, or sightings adjusted for how many people were birding (see the backend's /api/counts). */
+export type Basis = "raw" | "corrected";
+
 /** Each region's sighting count for every year, per species: counts[i] is years[i]. */
 export interface CountsData {
   years: number[];
@@ -163,8 +166,8 @@ export const api = {
 
   regions: () => request<Region[]>("/api/regions"),
 
-  counts: (species?: string[]) =>
-    request<CountsData>(`/api/counts?${query({ species: species?.join(",") })}`),
+  counts: (species?: string[], basis?: Basis) =>
+    request<CountsData>(`/api/counts?${query({ species: species?.join(","), basis })}`),
 
   grabData: (species: string, start?: number, end?: number) =>
     request<GrabData>(`/api/grab_data?${query({ species, start, end })}`),

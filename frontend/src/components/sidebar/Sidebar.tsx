@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 
 import {
   Filter,
@@ -14,6 +14,8 @@ import {
 } from "lucide-react";
 
 import styles from "./sidebar.module.css";
+
+import type { Basis } from "../../api/client";
 
 import {
   useContextSettings,
@@ -32,13 +34,19 @@ type SidebarPage =
   | "data"
   | "species";
 
-export default function Sidebar() {
+interface SidebarProps {
+  /** Shown on the menu page, between the menu items and the species list. */
+  templates?: ReactNode;
+}
+
+export default function Sidebar({ templates }: SidebarProps) {
   const [activePage, setActivePage] =
     useState<SidebarPage>("menu");
 
   const {
     settings,
     setDataDisplayType,
+    setDataBasis,
     setEarthDisplayType,
     updateFilters,
     allSpecies,
@@ -180,6 +188,9 @@ export default function Sidebar() {
                 className={styles.arrow}
               />
             </button>
+
+            {/* TEMPLATES */}
+            {templates}
 
             {/* SPECIES SELECTOR */}
             <section className={styles.speciesSection}>
@@ -426,6 +437,28 @@ export default function Sidebar() {
 
                   <option value="heatmap">
                     Heatmap
+                  </option>
+                </select>
+              </div>
+
+              <div className="select-field">
+                <label htmlFor="data-basis">
+                  Sightings
+                </label>
+
+                <select
+                  id="data-basis"
+                  value={settings.dataBasis}
+                  onChange={e =>
+                    setDataBasis(e.target.value as Basis)
+                  }
+                >
+                  <option value="corrected">
+                    Corrected for birder effort
+                  </option>
+
+                  <option value="raw">
+                    Raw
                   </option>
                 </select>
               </div>

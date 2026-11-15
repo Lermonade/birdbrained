@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from "react";
 
+import type { Basis } from "../api/client";
 import {
   VisualizationType,
   EarthType,
@@ -38,6 +39,7 @@ interface SpeciesInput {
 
 interface Settings {
   dataDisplayType: VisualizationType;
+  dataBasis: Basis;
   earthDisplayType: EarthType;
   filters: FilterSettings;
 }
@@ -46,6 +48,7 @@ interface ContextType {
   settings: Settings;
 
   setDataDisplayType: (value: VisualizationType) => void;
+  setDataBasis: (value: Basis) => void;
   setEarthDisplayType: (value: EarthType) => void;
   updateFilters: (filters: FilterSettings) => void;
 
@@ -157,6 +160,7 @@ export function ContextProvider({
 
   const [settings, setSettings] = useState<Settings>({
     dataDisplayType: VisualizationType.STAMPS,
+    dataBasis: "corrected",
     earthDisplayType: EarthType.TEXTURED,
     filters: initialFilters,
   });
@@ -295,6 +299,16 @@ export function ContextProvider({
     []
   );
 
+  const setDataBasis = useCallback(
+    (value: Basis) => {
+      setSettings(current => ({
+        ...current,
+        dataBasis: value,
+      }));
+    },
+    []
+  );
+
   const setEarthDisplayType = useCallback(
     (value: EarthType) => {
       setSettings(current => ({
@@ -331,6 +345,7 @@ export function ContextProvider({
         settings,
 
         setDataDisplayType,
+        setDataBasis,
         setEarthDisplayType,
         updateFilters,
 

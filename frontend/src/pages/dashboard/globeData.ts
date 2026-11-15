@@ -2,7 +2,7 @@
 // year, in the species' sidebar color. Stamp size and heatmap weight both come from the count.
 
 import type { DataSet } from "../../components/globe_visualization/GlobeVisualization";
-import type { Region } from "../../api/client";
+import type { Basis, Region } from "../../api/client";
 
 // Change colors, still used by the detail panel. A color-blind-safe pair: blue up, orange down.
 export const UP_COLOR = "#3b8bd4";
@@ -31,11 +31,11 @@ export function parsePointId(id: string): { speciesKey: string; region: string }
   return { speciesKey: id.slice(0, split), region: id.slice(split + 1) };
 }
 
-function label(name: string, color: string, region: string, count: number, year: number): string {
+function label(name: string, color: string, region: string, count: number, year: number, basis: Basis): string {
   return `
     <div style="color: white; padding: 6px 8px; font: 13px/1.4 system-ui, sans-serif;">
       <strong style="color: ${color}">${name}</strong><br />
-      ${region}: ${count.toLocaleString()} sightings in ${year}<br />
+      ${region}: ${count.toLocaleString()} ${basis === "corrected" ? "corrected sightings" : "sightings"} in ${year}<br />
       <span style="opacity: 0.7">Click for details</span>
     </div>
   `;
@@ -80,7 +80,8 @@ export function toDatasets(
   species: SpeciesSightings[],
   regions: Region[],
   yearIndex: number,
-  year: number
+  year: number,
+  basis: Basis = "raw"
 ): DataSet[] {
   const max = maxCount(species);
 
@@ -110,7 +111,7 @@ export function toDatasets(
           population: count,
           size: Math.sqrt(count / max),
           layer: layers.get(id) ?? 0,
-          label: label(s.name, s.color, region.name, count, year),
+          label: label(s.name, s.color, region.name, count, year, basis),
         },
       ];
     }),

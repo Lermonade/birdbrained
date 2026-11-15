@@ -7,6 +7,7 @@ Interactive docs are at http://localhost:8000/docs.
 from __future__ import annotations
 
 import os
+from typing import Literal
 
 from fastapi import FastAPI, Query, Request
 from fastapi.exceptions import RequestValidationError
@@ -106,16 +107,18 @@ def get_series(species: str) -> dict:
 
 
 @app.get("/api/counts")
-def get_counts(species: str | None = None) -> dict:
+def get_counts(species: str | None = None, basis: Literal["raw", "corrected"] = "raw") -> dict:
     """Each region's sighting count for every year, for the globe's timeline.
 
     species is a comma-separated list of keys (default: all). Regions where a species has no
-    records are left out.
+    records are left out. basis "corrected" gives the counts adjusted for birding effort (what
+    the species would have had at the base years' effort; 0 in years without enough data).
     """
     keys = [k.strip() for k in species.split(",") if k.strip()] if species else [s["key"] for s in store.species()]
     for key in keys:
         require_species(key)
-    return {"years": store.years(), "species": {key: store.species_counts(key) for key in keys}}
+    corrected = basis == "corrected"
+    return {"years": store.years(), "species": {key: store.species_counts(key, corrected) for key in keys}}
 
 
 @app.get("/api/anomalies")

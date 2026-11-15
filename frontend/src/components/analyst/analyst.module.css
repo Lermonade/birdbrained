@@ -30,9 +30,9 @@
   min-height: 74px;
   box-sizing: border-box;
   padding: 0.55rem 0.75rem;
-  border: 1px solid #aaa99f;
-  border-radius: 6px;
-  background-color: var(--sky-solid);
+  border: 1.5px solid var(--line-strong, #aaa99f);
+  border-radius: 8px;
+  background-color: transparent;
   color: var(--ink);
   font-family: inherit;
   font-size: 0.85rem;

@@ -1,12 +1,16 @@
 .sidebar {
   /* The look's sky and ink (src/looks). Re-pointing --bg, --text and --accent here
-     carries the shared dropdowns and date inputs along with it. */
+     carries the shared dropdowns along with it. The templates and analyst read these too. */
   --bg: var(--sky, #0b1d2c);
   --text: var(--landing-ink, #fbf1dc);
   --accent: #9fd1b2;
   --muted: var(--landing-ink-dim, rgba(251, 241, 220, 0.84));
   --line: color-mix(in srgb, var(--text) 22%, transparent);
   --line-strong: color-mix(in srgb, var(--text) 40%, transparent);
+  --paper: var(--text); /* stamps and prints are paper in the look's ink */
+  --print: #e9965a; /* the park poster's sunset, for offset shadows */
+  --radius: 8px;
+  --pill: 12px;
 
   position: relative;
   display: flex;
@@ -15,490 +19,201 @@
   height: 100%;
   min-width: 0;
   min-height: 0;
-  box-sizing: border-box;
-  padding: 1.5rem;
   overflow: hidden;
   background-color: var(--bg);
   color: var(--text);
 }
 
-/* Content container */
-.content {
-  width: 100%;
-  height: 100%;
-  min-height: 0;
-  overflow: hidden;
-  animation: slideIn 0.25s ease-out;
+:global([data-look="block-print"]) .sidebar {
+  --print: #c9583b; /* the block print's moon */
+  --radius: 3px;
+  --pill: 4px;
 }
 
-@keyframes slideIn {
-  from {
-    opacity: 0.7;
-    transform: translateX(24px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-/* Individual page */
-.page {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  height: 100%;
-  min-width: 0;
+/* The one scroll */
+.scroll {
+  flex: 1;
   min-height: 0;
-  overflow-y: auto;
   overflow-x: hidden;
-  padding-right: 0.35rem;
-}
-
-/* Scrollbar: the whole page scrolls, not just the species list */
-.page::-webkit-scrollbar {
-  width: 5px;
-}
-
-.page::-webkit-scrollbar-thumb {
-  background: var(--line-strong);
-  border-radius: 10px;
-}
-
-.page::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-/* Headings */
-.heading {
-  margin: 0 0 1.25rem;
-  font-size: 1.3rem;
-  font-weight: 700;
-}
-
-/* Main menu items */
-.menuItem {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  box-sizing: border-box;
-  width: 100%;
-  padding: 0.85rem 0;
-  border: none;
-  border-bottom: 1px solid var(--line);
-  background: transparent;
-  color: var(--text);
-  font-family: inherit;
-  font-size: 0.95rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: color 0.2s ease;
-}
-
-.menuItem:first-of-type {
-  border-top: 1px solid var(--line);
-}
-
-.menuItem:hover {
-  color: var(--accent);
-}
-
-.menuLabel {
-  display: flex;
-  align-items: center;
-  gap: 0.85rem;
-}
-
-.arrow {
-  color: var(--text);
-  opacity: 0.5;
-  transition: transform 0.2s ease, opacity 0.2s ease;
-}
-
-.menuItem:hover .arrow {
-  transform: translateX(4px);
-  opacity: 1;
-  color: var(--accent);
-}
-
-/* Back button */
-.backButton {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  padding: 0;
-  margin-bottom: 1rem;
-  border: none;
-  background: transparent;
-  color: var(--text);
-  font-family: inherit;
-  font-size: 0.9rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: color 0.2s ease;
-}
-
-.backButton:hover {
-  color: var(--accent);
-}
-
-.backButton svg {
-  transition: transform 0.2s ease;
-}
-
-.backButton:hover svg {
-  transform: translateX(-4px);
-}
-
-/* Reduced motion */
-@media (prefers-reduced-motion: reduce) {
-  .content,
-  .menuItem,
-  .arrow,
-  .backButton,
-  .backButton svg {
-    animation: none;
-    transition: none;
-  }
-}
-
-
-
-
-
-
-/* Species section */
-.speciesSection {
-  display: flex;
-  flex-direction: column;
-  flex-shrink: 0;
-  margin-top: 2rem;
-}
-
-.speciesHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 0.85rem;
-}
-
-.speciesHeader .heading {
-  margin: 0;
-}
-
-.speciesCount {
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--muted);
-}
-
-/* Search bar */
-.speciesSearch {
-  display: flex;
-  align-items: center;
-  gap: 0.65rem;
-  width: 100%;
-  height: 40px;
-  flex-shrink: 0;
-  padding: 0 0.75rem;
-  margin-bottom: 1rem;
-
-  border: 1px solid var(--line-strong);
-  border-radius: 6px;
-
-  color: var(--muted);
-  background: transparent;
-}
-
-.speciesSearch input {
-  width: 100%;
-  min-width: 0;
-  border: none;
-  outline: none;
-  box-shadow: none;
-  background: transparent;
-  color: var(--text);
-  font-family: inherit;
-  font-size: 0.85rem;
-}
-
-.speciesSearch input::placeholder {
-  color: var(--muted);
-}
-
-/* Species list: grows with its contents; the sidebar page scrolls */
-.speciesList {
-  display: flex;
-  flex-direction: column;
-  gap: 0.65rem;
-}
-
-/* Individual species */
-.speciesItem {
-  display: flex;
-  align-items: center;
-  gap: 0.85rem;
-  flex-shrink: 0;
-  padding: 0.45rem 0.5rem;
-  margin: 0 -0.5rem;
-  border: none;
-  border-radius: 6px;
-  background: transparent;
-  transition: background-color 0.15s ease;
-  cursor: pointer;
-  transition: transform 0.05s ease;
-}
-
-.speciesIcon {
-  transition: transform 0.05s ease;
-}
-
-.speciesItem:hover {
-  transform: translateX(6px);
-}
-
-.speciesIcon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  width: 42px;
-  height: 42px;
-  border-radius: 7px;
-}
-
-.speciesInfo {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  gap: 0.1rem;
-}
-
-.speciesName {
-  font-size: 0.9rem;
-  font-weight: 650;
-  line-height: 1.3;
-  color: var(--text);
-}
-
-.speciesSubtitle {
-  font-size: 0.75rem;
-  line-height: 1.3;
-  color: var(--muted);
-}
-
-/* Search results */
-.speciesResults {
-  display: flex;
-  flex-direction: column;
-  flex-shrink: 0;
-  gap: 0.4rem;
-  max-height: 180px;
   overflow-y: auto;
-  margin-bottom: 0.85rem;
-  padding-right: 0.35rem;
+  padding: 0 1.25rem 1.5rem;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
 }
 
-.speciesResult {
+/* Section headings: stick to the top while their section scrolls by */
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 1.1rem 0 0.8rem;
+  background: var(--bg);
+}
+
+.title {
   display: flex;
   align-items: center;
-  gap: 0.85rem;
-  width: 100%;
-  flex-shrink: 0;
-  padding: 0.45rem 0.5rem;
-  margin: 0 -0.5rem;
-  border: none;
-  border-radius: 6px;
-  background: transparent;
-  text-align: left;
-  cursor: pointer;
-  transition:
-    transform 0.15s ease,
-    background-color 0.15s ease;
+  gap: 0.45rem;
+  font-family: var(--display);
+  font-size: 1.45rem;
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: 0.01em;
 }
 
-.speciesResult:hover {
-  transform: translateX(6px);
-  background-color: var(--line);
+.title svg {
+  color: var(--accent);
 }
 
-.speciesEmpty {
-  padding: 0.5rem 0;
+.count {
   color: var(--muted);
-  font-size: 0.8rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
 }
 
-.speciesResults::-webkit-scrollbar {
-  width: 5px;
+/* A row of perforations between sections, like a sheet of stamps */
+.tear {
+  height: 8px;
+  margin: 1.2rem -0.25rem 0.1rem;
+  border: 0;
+  background:
+    radial-gradient(circle, var(--line-strong) 1.6px, transparent 2.1px) 0 50% / 9px 8px repeat-x;
 }
 
-.speciesResults::-webkit-scrollbar-thumb {
-  background: var(--line-strong);
-  border-radius: 10px;
+/* Display toggles */
+.settings {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
 }
 
-.speciesResults::-webkit-scrollbar-track {
-  background: transparent;
+.segmented {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 0;
+  border: 0;
 }
 
-/* Reduced motion */
-@media (prefers-reduced-motion: reduce) {
-  .speciesResult {
-    transition: none;
-  }
+.label {
+  padding: 0;
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
-/* Page navigation animations */
-.content {
+.track {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  padding: 3px;
+  border: 1.5px solid var(--line-strong);
+  border-radius: var(--pill);
+}
+
+.segment {
+  position: relative;
+  flex: 1 1 0;
+  min-width: fit-content;
+}
+
+.segment input {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
-  min-height: 0;
-  overflow: hidden;
-}
-
-.contentForward {
-  animation: slideForward 0.25s ease-out;
-}
-
-.contentBack {
-  animation: slideBack 0.25s ease-out;
-}
-
-@keyframes slideForward {
-  from {
-    opacity: 0.5;
-    transform: translateX(30px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-@keyframes slideBack {
-  from {
-    opacity: 0.5;
-    transform: translateX(-30px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-/* Species detail header */
-.speciesDetailHeader {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin: 1rem 0 2rem;
-}
-
-.speciesDetailIcon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  width: 58px;
-  height: 58px;
-  border-radius: 9px;
-}
-
-.speciesDetailName {
-  margin: 0 0 0.25rem;
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: var(--text);
-}
-
-/* Settings section */
-.speciesSetting {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  padding: 1.1rem 0;
-  border-top: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
-}
-
-.settingHeading {
-  display: flex;
-  align-items: center;
-  gap: 0.65rem;
-  font-size: 0.9rem;
-  font-weight: 650;
-  color: var(--text);
-}
-
-.colorPickerRow {
-  display: flex;
-  align-items: center;
-  gap: 0.8rem;
-}
-
-.colorPicker {
-  width: 45px;
-  height: 38px;
-  padding: 2px;
-  border: 1px solid var(--line-strong);
-  border-radius: 6px;
-  background: transparent;
+  margin: 0;
+  opacity: 0;
   cursor: pointer;
 }
 
-.colorValue {
-  font-size: 0.8rem;
+.segment span {
+  display: block;
+  padding: 0.38rem 0.65rem;
+  border-radius: calc(var(--pill) - 3px);
   color: var(--muted);
-  font-family: monospace;
-}
-
-/* Delete button */
-.speciesDeleteSection {
-  margin-top: auto;
-  padding-top: 2rem;
-}
-
-.deleteSpeciesButton {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.65rem;
-  width: 100%;
-  padding: 0.8rem;
-  border: 1px solid #c65b5b;
-  border-radius: 6px;
-  background: transparent;
-  color: #c65b5b;
-  font-family: inherit;
-  font-size: 0.9rem;
-  font-weight: 600;
-  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 650;
+  text-align: center;
+  white-space: nowrap;
   transition:
-    background-color 0.2s ease,
-    color 0.2s ease;
+    background-color 0.15s ease,
+    color 0.15s ease;
 }
 
-.deleteSpeciesButton:hover {
-  background: #c65b5b;
-  color: white;
+.segment:hover span {
+  background: color-mix(in srgb, var(--text) 9%, transparent);
+  color: var(--text);
 }
 
-/* Make selected species clickable buttons */
-.speciesItem {
-  width: 100%;
-  text-align: left;
-  font-family: inherit;
-  color: inherit;
-  border: none;
-  background: transparent;
+/* On: inked in paper, like a stamp */
+.segment input:checked + span {
+  background: var(--paper);
+  color: var(--bg);
+}
+
+.segment input:focus-visible + span {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* The analyst's dropdowns, in the sidebar's style (the global ones are left alone) */
+.sidebar :global(.select-field) {
+  gap: 0.35rem;
+  margin-bottom: 0.8rem;
+}
+
+.sidebar :global(.select-field) label {
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.sidebar :global(.select-field) select {
+  height: 38px;
+  padding: 0 2rem 0 0.75rem;
+  border: 1.5px solid var(--line-strong);
+  border-radius: var(--radius);
+  background-color: transparent;
+  background-image:
+    linear-gradient(45deg, transparent 50%, currentColor 50%),
+    linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position:
+    calc(100% - 15px) 50%,
+    calc(100% - 10px) 50%;
+  background-repeat: no-repeat;
+  background-size: 5px 5px;
+  color: var(--text);
+  appearance: none;
+  transition: border-color 0.15s ease;
+}
+
+.sidebar :global(.select-field) select:hover {
+  border: 1.5px solid var(--text);
+}
+
+.sidebar :global(.select-field) select:focus,
+.sidebar :global(.select-field) select:focus-visible {
+  border: 1.5px solid var(--accent);
+}
+
+.sidebar :global(.select-field) select:disabled {
+  opacity: 0.5;
+  cursor: default;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .contentForward,
-  .contentBack {
-    animation: none;
+  .segment span,
+  .sidebar :global(.select-field) select {
+    transition: none;
   }
 }

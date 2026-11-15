@@ -68,7 +68,7 @@ interface ContextType {
 // Configuration
 // --------------------------------------------------
 
-const MAX_SELECTED_SPECIES = 10;
+export const MAX_SELECTED_SPECIES = 10;
 
 const SPECIES_COLORS = [
   "#B66D6D",

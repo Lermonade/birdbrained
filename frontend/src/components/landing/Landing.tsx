@@ -511,7 +511,7 @@ export default function Landing({
             </h1>
 
             <p ref={subheadingRef} className={styles.subheading}>
-              Where America's birds are gaining ground, and where they're losing it.
+              160 species, 84 countries, and which way each population is heading.
             </p>
 
             <Bird ref={birdRef} />

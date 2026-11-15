@@ -1,0 +1,374 @@
+/* The birds on the globe as a sheet of stamps. Lives inside .sidebar and reads its
+   tokens (--bg, --text, --muted, --line, --line-strong, --accent, --paper, --radius). */
+.album {
+  container-type: inline-size;
+}
+
+/* Search */
+.search {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  height: 40px;
+  padding: 0 0.4rem 0 0.85rem;
+  border: 1.5px solid var(--line-strong);
+  border-radius: 999px;
+  color: var(--muted);
+  transition:
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.search:focus-within {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.search input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--text);
+  font-size: 0.85rem;
+}
+
+.search input::placeholder {
+  color: var(--muted);
+}
+
+.clear {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--muted);
+}
+
+.clear:hover,
+.clear:focus-visible {
+  background: var(--line);
+  color: var(--text);
+  outline: none;
+}
+
+/* Search results */
+.results {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 0.75rem;
+}
+
+.result {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  width: 100%;
+  padding: 0.45rem 0.5rem;
+  border: 0;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+}
+
+.result:hover,
+.result:focus-visible {
+  background: color-mix(in srgb, var(--text) 9%, transparent);
+  outline: none;
+}
+
+/* A tiny stamp in the bird's color */
+.chip {
+  flex: none;
+  width: 16px;
+  height: 20px;
+  border: 2.5px solid var(--paper);
+  border-radius: 2px;
+  box-shadow: 1.5px 1.5px 0 rgba(0, 0, 0, 0.35);
+}
+
+.resultText {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.resultName {
+  font-size: 0.86rem;
+  font-weight: 650;
+  line-height: 1.25;
+}
+
+.resultSub {
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
+.plus {
+  flex: none;
+  color: var(--accent);
+  opacity: 0;
+  transition:
+    opacity 0.15s ease,
+    transform 0.15s ease;
+}
+
+.result:hover .plus,
+.result:focus-visible .plus {
+  opacity: 1;
+  transform: rotate(90deg);
+}
+
+.empty {
+  padding: 0.6rem 0.25rem;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+/* The sheet: two stamps a row, more as the sidebar widens */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.1rem 0.9rem;
+  margin-top: 1rem;
+  padding: 8px 8px 0 2px;
+  list-style: none;
+}
+
+@container (min-width: 380px) {
+  .grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@container (min-width: 500px) {
+  .grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* One stamp. The shadow is a filter so it follows the perforated edge. */
+.stamp {
+  position: relative;
+  filter: drop-shadow(2px 3px 0 rgba(0, 0, 0, 0.35));
+  transform: rotate(var(--tilt, 0deg));
+  transition:
+    transform 0.2s ease,
+    filter 0.2s ease;
+  animation: stampIn 0.42s cubic-bezier(0.2, 1.3, 0.4, 1);
+}
+
+.stamp:hover,
+.stamp:focus-within {
+  filter: drop-shadow(3px 5px 0 rgba(0, 0, 0, 0.3));
+  transform: rotate(0deg) translateY(-2px);
+}
+
+/* Stuck on: drops in big and crooked, then settles */
+@keyframes stampIn {
+  from {
+    opacity: 0;
+    transform: scale(1.3) rotate(-8deg);
+  }
+
+  60% {
+    opacity: 1;
+    transform: scale(0.96) rotate(var(--tilt, 0deg));
+  }
+
+  to {
+    transform: rotate(var(--tilt, 0deg));
+  }
+}
+
+/* Peeled off */
+.peeling {
+  pointer-events: none;
+  animation: peel 0.18s ease-in forwards;
+}
+
+@keyframes peel {
+  to {
+    opacity: 0;
+    transform: translate(8px, -14px) rotate(10deg) scale(0.9);
+  }
+}
+
+/* The paper, with perforated edges: holes every 3r around the rim, and a solid
+   rectangle over the middle so only the rim's holes show */
+.paper {
+  --r: 3px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 9px 9px 10px;
+  background: var(--paper);
+  color: var(--bg);
+  -webkit-mask:
+    radial-gradient(var(--r), #0000 97%, #000) round calc(-1.5 * var(--r)) calc(-1.5 * var(--r)) /
+      calc(3 * var(--r)) calc(3 * var(--r)),
+    linear-gradient(#000 0 0) no-repeat 50% / calc(100% - 3 * var(--r)) calc(100% - 3 * var(--r));
+  mask:
+    radial-gradient(var(--r), #0000 97%, #000) round calc(-1.5 * var(--r)) calc(-1.5 * var(--r)) /
+      calc(3 * var(--r)) calc(3 * var(--r)),
+    linear-gradient(#000 0 0) no-repeat 50% / calc(100% - 3 * var(--r)) calc(100% - 3 * var(--r));
+}
+
+/* The printed picture: the bird's color, a halftone, and a fine frame line */
+.face {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 5 / 4;
+  overflow: hidden;
+  background-color: var(--c);
+  background-image: radial-gradient(rgba(255, 255, 255, 0.13) 1px, transparent 1.3px);
+  background-size: 5px 5px;
+  box-shadow:
+    inset 0 0 0 4px var(--c),
+    inset 0 0 0 5px color-mix(in srgb, var(--paper) 60%, transparent);
+}
+
+.face:has(.picker:focus-visible) {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.glyph {
+  width: 40%;
+  height: auto;
+  color: var(--paper);
+  filter: drop-shadow(1px 1px 0 rgba(0, 0, 0, 0.25));
+}
+
+/* Its "denomination": the sightings */
+.value {
+  position: absolute;
+  right: 7px;
+  bottom: 5px;
+  color: var(--paper);
+  font-family: var(--display);
+  font-size: 0.82rem;
+  line-height: 1;
+}
+
+.hint {
+  position: absolute;
+  top: 7px;
+  left: 7px;
+  color: var(--paper);
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.face:hover .hint,
+.face:focus-within .hint {
+  opacity: 0.9;
+}
+
+/* The color picker, invisible over the whole face */
+.picker {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.name {
+  display: -webkit-box;
+  min-height: 2.4em;
+  overflow: hidden;
+  font-size: 0.72rem;
+  font-weight: 750;
+  line-height: 1.2;
+  text-align: center;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+/* Remove: one click, on the corner */
+.peel {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--paper);
+  border-radius: 50%;
+  background: var(--bg);
+  color: var(--paper);
+  transition:
+    transform 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.peel:hover,
+.peel:focus-visible {
+  background: #c65b5b;
+  outline: none;
+  transform: scale(1.1) rotate(90deg);
+}
+
+/* The empty spot for the next bird */
+.slotItem {
+  display: flex;
+}
+
+.slot {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: 120px;
+  border: 2px dashed var(--line-strong);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  transition:
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.slot:hover,
+.slot:focus-visible {
+  border-color: var(--accent);
+  color: var(--accent);
+  outline: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .search,
+  .plus,
+  .stamp,
+  .hint,
+  .peel,
+  .slot {
+    transition: none;
+  }
+
+  .stamp,
+  .peeling {
+    animation: none;
+  }
+}

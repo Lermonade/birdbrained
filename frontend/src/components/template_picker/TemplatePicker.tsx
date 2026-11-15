@@ -49,21 +49,22 @@ export default function TemplatePicker({
             <li key={template.id}>
               <button
                 type="button"
-                className={styles.row}
+                className={styles.print}
                 aria-pressed={on}
                 disabled={!on && full}
                 onClick={() => onToggle(template)}
                 title={`${template.species}, ${template.region}, ${template.startYear} to ${template.endYear}`}
               >
-                <img className={styles.thumb} src={template.imageUrl} alt="" />
-
-                <span className={styles.text}>
-                  <span className={styles.name}>{template.species}</span>
-                  <span className={styles.where}>{template.region}</span>
+                <span className={styles.photo}>
+                  <img src={template.imageUrl} alt="" />
                 </span>
 
-                <span className={styles.box} aria-hidden="true">
-                  {on && <Check size={14} strokeWidth={3} />}
+                <span className={styles.name}>{template.species}</span>
+                <span className={styles.where}>{template.region}</span>
+
+                {/* On the globe: a postmark on the corner */}
+                <span className={styles.badge} aria-hidden="true">
+                  <Check size={13} strokeWidth={3.5} />
                 </span>
               </button>
             </li>

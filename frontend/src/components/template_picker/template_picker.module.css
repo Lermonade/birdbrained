@@ -1,27 +1,36 @@
-/* The templates in the sidebar. Lives inside .sidebar, so it picks up the look's sky and
-   ink from there (--text, --muted, --line, --accent); the fallbacks are for anywhere else. */
+/* The templates in the sidebar, as small photo prints. Lives inside .sidebar, so it picks
+   up the look's sky and ink from there (--bg, --text, --muted, --accent, --paper, --print);
+   the fallbacks are for anywhere else. */
 .picker {
   --ink: var(--text, var(--landing-ink, #fbf1dc));
   --ink-dim: var(--muted, var(--landing-ink-dim, rgba(251, 241, 220, 0.84)));
-  --rule: var(--line, color-mix(in srgb, var(--ink) 22%, transparent));
-  --rule-strong: var(--line-strong, color-mix(in srgb, var(--ink) 40%, transparent));
   --mint: var(--accent, #9fd1b2);
+  --sheet: var(--paper, var(--landing-ink, #fbf1dc));
+  --sky-solid: var(--bg, var(--sky, #0b1d2c));
+  --offset: var(--print, #e9965a);
 
-  flex-shrink: 0;
-  margin-top: 2rem;
+  container-type: inline-size;
 }
 
+/* Same sticky heading as the sidebar's other sections */
 .header {
+  position: sticky;
+  top: 0;
+  z-index: 3;
   display: flex;
-  align-items: center;
+  align-items: baseline;
   justify-content: space-between;
-  margin-bottom: 0.85rem;
+  gap: 0.75rem;
+  padding: 1.1rem 0 0.8rem;
+  background: var(--sky-solid);
 }
 
 .heading {
-  margin: 0;
-  font-size: 1.3rem;
-  font-weight: 700;
+  font-family: var(--display);
+  font-size: 1.45rem;
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: 0.01em;
 }
 
 .all {
@@ -30,8 +39,8 @@
   background: transparent;
   color: var(--ink-dim);
   font: inherit;
-  font-size: 0.8rem;
-  font-weight: 600;
+  font-size: 0.78rem;
+  font-weight: 700;
   cursor: pointer;
   transition: color 0.15s ease;
 }
@@ -48,105 +57,118 @@
 }
 
 .list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.9rem 0.8rem;
+  padding: 6px 8px 4px 0;
   list-style: none;
 }
 
-.row {
+@container (max-width: 240px) {
+  .list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* One print: paper around the photo, a flat offset shadow. Pressed flat when on. */
+.print {
+  --lift: 0px;
+
+  position: relative;
   display: flex;
-  align-items: center;
-  gap: 0.7rem;
+  flex-direction: column;
   width: 100%;
-  padding: 0.4rem 0.6rem 0.4rem 0.4rem;
-  border: 1px solid transparent;
-  border-radius: 8px;
-  background: transparent;
-  color: var(--ink);
+  height: 100%;
+  padding: 5px 5px 7px;
+  border: none;
+  border-radius: 3px;
+  background: var(--sheet);
+  color: var(--sky-solid);
   font: inherit;
   text-align: left;
   cursor: pointer;
+  box-shadow: calc(4px - var(--lift)) calc(4px - var(--lift)) 0 var(--offset);
+  transform: translate(var(--lift), var(--lift));
   transition:
-    background-color 0.15s ease,
-    border-color 0.15s ease;
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
-.row:hover:not(:disabled),
-.row:focus-visible {
-  background: color-mix(in srgb, var(--ink) 8%, transparent);
-  outline: none;
+.print:hover:not(:disabled) {
+  --lift: 1.5px;
 }
 
-.row:focus-visible {
-  border-color: var(--rule-strong);
+.print[aria-pressed="true"] {
+  --lift: 4px;
 }
 
-/* On: the bird is on the globe */
-.row[aria-pressed="true"] {
-  border-color: var(--mint);
-  background: color-mix(in srgb, var(--mint) 12%, transparent);
+.print:focus-visible {
+  outline: 2px solid var(--mint);
+  outline-offset: 3px;
 }
 
-.row:disabled {
+.print:disabled {
   opacity: 0.4;
   cursor: default;
 }
 
-.thumb {
-  flex: none;
-  width: 42px;
-  height: 42px;
-  border-radius: 7px;
-  object-fit: cover;
+.photo {
+  display: block;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border: 1.5px solid var(--sky-solid);
 }
 
-.text {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  min-width: 0;
-  gap: 0.1rem;
+.photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: saturate(0.92) contrast(1.04);
 }
 
 .name {
-  font-size: 0.9rem;
-  font-weight: 650;
-  line-height: 1.25;
+  margin-top: 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 750;
+  line-height: 1.15;
 }
 
 .where {
   overflow: hidden;
-  color: var(--ink-dim);
-  font-size: 0.75rem;
-  line-height: 1.3;
+  margin-top: 0.1rem;
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
   text-overflow: ellipsis;
+  text-transform: uppercase;
   white-space: nowrap;
+  opacity: 0.7;
 }
 
-/* The tick box, at the right */
-.box {
+/* The postmark: shows when the bird is on the globe */
+.badge {
+  position: absolute;
+  top: -7px;
+  right: -7px;
   display: grid;
-  flex: none;
   place-items: center;
-  width: 20px;
-  height: 20px;
-  border: 1.5px solid var(--rule-strong);
-  border-radius: 5px;
-  color: var(--sky, #0b1d2c);
-  transition:
-    background-color 0.15s ease,
-    border-color 0.15s ease;
+  width: 22px;
+  height: 22px;
+  border: 2px solid var(--sky-solid);
+  border-radius: 50%;
+  background: var(--mint);
+  color: var(--sky-solid);
+  transform: scale(0) rotate(-30deg);
+  transition: transform 0.22s cubic-bezier(0.2, 1.4, 0.4, 1);
 }
 
-.row[aria-pressed="true"] .box {
-  border-color: var(--mint);
-  background: var(--mint);
+.print[aria-pressed="true"] .badge {
+  transform: scale(1) rotate(-12deg);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .row,
-  .box,
+  .print,
+  .badge,
   .all {
     transition: none;
   }

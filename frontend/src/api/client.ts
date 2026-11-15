@@ -111,9 +111,7 @@ export interface Answer {
     cause: string;
     support: string[];
     against: string[];
-    confidence: string;
   }[];
-  could_be_artifact: string;
   next_steps: string[];
 }
 

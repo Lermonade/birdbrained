@@ -2,7 +2,6 @@
 import { useState, type ReactNode } from "react";
 
 import {
-  Filter,
   SlidersHorizontal,
   Sparkles,
   ChevronRight,
@@ -19,7 +18,6 @@ import type { Basis } from "../../api/client";
 
 import {
   useContextSettings,
-  type FilterSettings,
 } from "../../context/Context";
 
 import {
@@ -29,7 +27,6 @@ import {
 
 type SidebarPage =
   | "menu"
-  | "filters"
   | "visualization"
   | "analyst"
   | "species";
@@ -50,16 +47,12 @@ export default function Sidebar({ templates, analyst }: SidebarProps) {
     setDataDisplayType,
     setDataBasis,
     setEarthDisplayType,
-    updateFilters,
     allSpecies,
     selectedSpecies,
     addSelectedSpecies,
     removeSelectedSpecies,
     updateSpeciesColor,
   } = useContextSettings();
-
-  const [filterInputs, setFilterInputs] =
-    useState<FilterSettings>(settings.filters);
 
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -86,19 +79,6 @@ export default function Sidebar({ templates, analyst }: SidebarProps) {
     }
 
     setActivePage("menu");
-  }
-
-  function handleFilterChange(
-    field: keyof FilterSettings,
-    value: string
-  ) {
-    const updatedFilters = {
-      ...filterInputs,
-      [field]: value,
-    };
-
-    setFilterInputs(updatedFilters);
-    updateFilters(updatedFilters);
   }
 
   // Filter species by name and exclude already selected birds.
@@ -145,21 +125,6 @@ export default function Sidebar({ templates, analyst }: SidebarProps) {
         {activePage === "menu" && (
           <div className={styles.page}>
             <h2 className={styles.heading}>Options</h2>
-
-            <button
-              className={styles.menuItem}
-              onClick={() => navigateTo("filters")}
-            >
-              <span className={styles.menuLabel}>
-                <Filter size={19} />
-                Filters
-              </span>
-
-              <ChevronRight
-                size={18}
-                className={styles.arrow}
-              />
-            </button>
 
             <button
               className={styles.menuItem}
@@ -311,95 +276,6 @@ export default function Sidebar({ templates, analyst }: SidebarProps) {
 
             {/* TEMPLATES */}
             {templates}
-          </div>
-        )}
-
-        {/* FILTERS */}
-        {activePage === "filters" && (
-          <div className={styles.page}>
-            <button
-              className={styles.backButton}
-              onClick={goBack}
-            >
-              <ArrowLeft size={18} />
-              Back
-            </button>
-
-            <h2 className={styles.heading}>Filters</h2>
-
-            <div className="select-field">
-              <label htmlFor="start-date">
-                Start Date
-              </label>
-
-              <input
-                id="start-date"
-                type="date"
-                value={filterInputs.startDate}
-                onChange={e =>
-                  handleFilterChange(
-                    "startDate",
-                    e.target.value
-                  )
-                }
-              />
-            </div>
-
-            <div className="select-field">
-              <label htmlFor="start-time">
-                Start Time
-              </label>
-
-              <input
-                id="start-time"
-                type="time"
-                step={60}
-                value={filterInputs.startTime}
-                onChange={e =>
-                  handleFilterChange(
-                    "startTime",
-                    e.target.value
-                  )
-                }
-              />
-            </div>
-
-            <div className="select-field">
-              <label htmlFor="end-date">
-                End Date
-              </label>
-
-              <input
-                id="end-date"
-                type="date"
-                value={filterInputs.endDate}
-                onChange={e =>
-                  handleFilterChange(
-                    "endDate",
-                    e.target.value
-                  )
-                }
-              />
-            </div>
-
-            <div className="select-field">
-              <label htmlFor="end-time">
-                End Time
-              </label>
-
-              <input
-                id="end-time"
-                type="time"
-                step={60}
-                value={filterInputs.endTime}
-                onChange={e =>
-                  handleFilterChange(
-                    "endTime",
-                    e.target.value
-                  )
-                }
-              />
-            </div>
           </div>
         )}
 

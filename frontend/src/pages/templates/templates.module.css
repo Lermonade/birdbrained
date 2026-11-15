@@ -1,0 +1,143 @@
+.page {
+  box-sizing: border-box;
+  min-height: 100vh;
+  width: 100%;
+  padding: 56px 5% 64px;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.page *,
+.page *::before,
+.page *::after {
+  box-sizing: border-box;
+}
+
+/* Header */
+.header {
+  margin: 0 0 56px;
+}
+
+.title {
+  margin: 0;
+  font-size: 58px;
+  line-height: 1.08;
+  font-weight: 400;
+  letter-spacing: -1.4px;
+}
+
+.subtitle {
+  margin: 2px 0 0;
+  font-size: 32px;
+  line-height: 1.15;
+  font-weight: 400;
+}
+
+/* Template layout */
+.templateGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 350px));
+  justify-content: start;
+  align-items: start;
+  column-gap: 32px;
+  row-gap: 48px;
+}
+
+/* Individual templates */
+.templateCard {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Bird images */
+.image {
+  display: block;
+  width: 100%;
+  height: 270px;
+  object-fit: cover;
+  border: none;
+  border-radius: 0;
+}
+
+/* Text below images */
+.cardInfo {
+  padding: 0;
+  margin: 0;
+}
+
+.species {
+  margin: 0;
+  font-size: 28px;
+  line-height: 1.15;
+  font-weight: 400;
+}
+
+.years {
+  margin: 2px 0 0;
+  font-size: 21px;
+  line-height: 1.2;
+  font-weight: 400;
+}
+
+/* Medium screens */
+@media (max-width: 1250px) {
+  .templateGrid {
+    grid-template-columns: repeat(2, minmax(0, 350px));
+    column-gap: 64px;
+  }
+}
+
+@media (max-width: 850px) {
+  .page {
+    padding: 72px 5% 48px;
+  }
+
+  .header {
+    margin-bottom: 52px;
+  }
+
+  .title {
+    font-size: clamp(36px, 6vw, 58px);
+  }
+
+  .subtitle {
+    font-size: clamp(26px, 4.5vw, 42px);
+  }
+
+  .templateGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 36px;
+    row-gap: 36px;
+  }
+
+  .image {
+    height: auto;
+    aspect-ratio: 1.3 / 1;
+  }
+}
+
+/* Mobile screens */
+@media (max-width: 560px) {
+  .page {
+    padding: 52px 24px 40px;
+  }
+
+  .header {
+    margin-bottom: 38px;
+  }
+
+  .templateGrid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 32px;
+  }
+
+  .templateCard {
+    width: 100%;
+    max-width: 420px;
+  }
+
+  .image {
+    aspect-ratio: 1.3 / 1;
+  }
+}

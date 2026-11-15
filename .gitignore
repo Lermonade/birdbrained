@@ -34,3 +34,4 @@ CLAUDE.md
 AGENTS.md
 # Saved analyst answers
 backend/cache/
+package-lock.json

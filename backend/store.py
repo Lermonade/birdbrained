@@ -123,6 +123,21 @@ def all_birds_trend(region_id: str) -> dict:
     return {"changePerYear": round((math.exp(slope) - 1) * 100, 1)}
 
 
+# Pillar heights on the globe (globe.gl altitude units): a 5% minimum so every state shows, plus 0.1 per
+# doubling or halving, capped at 0.4. On a log scale a halving and a doubling get the same height.
+HEIGHT_MIN, HEIGHT_PER_DOUBLING, HEIGHT_MAX = 0.05, 0.1, 0.4
+
+
+def pillar_height(change: float | None) -> float | None:
+    """Globe pillar height for a percent change: the size of the change, whatever its direction."""
+    if change is None:
+        return None
+    ratio = 1 + change / 100
+    if ratio <= 0:
+        return HEIGHT_MAX
+    return round(min(HEIGHT_MAX, HEIGHT_MIN + HEIGHT_PER_DOUBLING * abs(math.log2(ratio))), 3)
+
+
 def change_map(species_key: str, start: int, end: int) -> dict:
     """For the globe: each state's corrected and raw change between two years.
 
@@ -153,6 +168,7 @@ def change_map(species_key: str, start: int, end: int) -> dict:
             "low": window["low"] if window else None,
             "high": window["high"] if window else None,
             "direction": window["direction"] if window else None,
+            "height": pillar_height(window["changePct"]) if window else None,
             "confident": window["confident"] if window else False,
             "startIndex": corrected[i],
             "endIndex": corrected[j],
@@ -160,6 +176,7 @@ def change_map(species_key: str, start: int, end: int) -> dict:
             "endCount": n[j],
             "rawChangePct": raw_window["changePct"] if raw_window else None,
             "rawDirection": raw_window["direction"] if raw_window else None,
+            "rawHeight": pillar_height(raw_window["changePct"]) if raw_window else None,
         })
     return {"key": species_key, "name": find_species(species_key)["commonName"], "dataPoints": points}
 

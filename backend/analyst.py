@@ -60,8 +60,6 @@ class Evidence(BaseModel):
 class Hypothesis(BaseModel):
     cause: str
     support: list[str]
-    against: list[str]
-    confidence: str
 
 
 class DataCheck(BaseModel):
@@ -74,7 +72,6 @@ class Answer(BaseModel):
     data_check: DataCheck
     evidence: list[Evidence]
     hypotheses: list[Hypothesis]
-    could_be_artifact: str
     next_steps: list[str]
 
 
@@ -206,8 +203,10 @@ def _cache_key(question: str, species_key: str, region_id: str) -> str:
 
 
 def _data_version() -> str:
-    """Answers given on mock data must not be served once real data arrives, and the reverse."""
-    return store.data_sources()["trends.json"]
+    """Saved answers are served only for the data and prompt they were given on: not mock answers once real
+    data arrives (or the reverse), and not answers written under an older prompt."""
+    prompt = hashlib.sha1(prompts.SYSTEM_PROMPT.encode("utf-8")).hexdigest()[:10]
+    return f"{store.data_sources()['trends.json']}|prompt {prompt}"
 
 
 def _write_cache(key: str, species_key: str, region_id: str, question: str, result: dict) -> None:
@@ -246,7 +245,6 @@ def _insufficient_answer(species: dict, region: dict, sampling: dict) -> dict:
         "data_check": {"sufficient": False, "note": note},
         "evidence": [],
         "hypotheses": [],
-        "could_be_artifact": "Not assessed, because the data is insufficient.",
         "next_steps": [f"More bird surveys in {region['name']} would make a trend possible."],
     }
 
@@ -256,22 +254,17 @@ def _mock_answer(species: dict, region: dict) -> dict:
     time.sleep(MOCK_DELAY_S)
     args = {"species": species["key"], "region": region["id"]}
     detail = store.detail(species["key"], region["id"])
-    trend, raw = detail["trend"], detail["rawTrend"]
+    trend = detail["trend"]
     years = store.years()
     span = f"{years[0]} to {years[-1]}"
     answer = {
-        "summary": f"Mock answer: no OPENAI_API_KEY is set. Corrected for the growth in birders, "
-        f"{species['commonName']} in {region['name']} changed {trend['changePerYear']:+.1f}% a year from {span}; "
-        f"raw sightings changed {raw['changePerYear']:+.1f}% a year.",
+        "summary": f"Mock answer: no OPENAI_API_KEY is set. "
+        f"{species['commonName']} in {region['name']} changed {trend['changePerYear']:+.1f}% a year from {span}.",
         "data_check": {"sufficient": True, "note": "Enough years pass the sampling thresholds."},
         "evidence": [
-            {"claim": f"Corrected index changed {trend['changePerYear']:+.1f}% a year "
-             f"(interval {trend['low']:+.1f} to {trend['high']:+.1f})", "tool": "get_trend"},
-            {"claim": f"Raw sightings changed {raw['changePerYear']:+.1f}% a year", "tool": "get_trend"},
+            {"claim": f"The trend changed {trend['changePerYear']:+.1f}% a year", "tool": "get_trend"},
         ],
-        "hypotheses": [{"cause": "Placeholder cause", "support": ["Placeholder"], "against": ["Placeholder"],
-                        "confidence": "untested"}],
-        "could_be_artifact": "Placeholder.",
+        "hypotheses": [{"cause": "Placeholder cause", "support": ["Placeholder"]}],
         "next_steps": ["Set OPENAI_API_KEY in backend/.env to get real answers."],
     }
     calls = [{"tool": "check_sampling", "args": args, "ms": 9}, {"tool": "get_trend", "args": args, "ms": 12}]

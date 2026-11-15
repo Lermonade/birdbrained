@@ -70,6 +70,7 @@ export const parkPoster: Look = {
     earth: { ocean: OCEAN, paint },
     shell: { shadow: "#1a1433", shadowAlpha: 0.3, outline: "#fbf1dc", outlineAlpha: 0 },
     ringColor: "251, 241, 220",
+    markOutline: "#fbf1dc",
     wireframeColor: "#f1e3c0",
   },
   Backdrop: ParkPosterBackdrop,

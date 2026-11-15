@@ -22,6 +22,7 @@ export interface GlobeArt {
   earth: PaintedEarth;
   shell?: ShellOptions;
   ringColor: string; // "r, g, b" of the landing's ripple
+  markOutline: string; // the inked rim around each data stamp
   wireframeColor: string;
 }
 

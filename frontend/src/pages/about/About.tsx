@@ -1,10 +1,28 @@
 
+import { useMemo, type CSSProperties } from "react";
+
+import { useLook } from "../../looks";
 import styles from "./about.module.css";
 import image from "../../assets/population_decline.png";
 
+const SCENE_PROGRESS: Record<string, number> = {
+  "park-poster": 0.4,
+  "block-print": 0.9,
+};
+const MOON_AT = { "--globe-cx": "78%", "--globe-cy": "30%" } as CSSProperties;
+
 export default function About() {
+  const look = useLook();
+  const scene = useMemo(
+    () => ({ current: { progress: SCENE_PROGRESS[look.id] ?? 1 } }),
+    [look.id]
+  );
+
   return (
     <main className={styles.page}>
+      <div className={styles.scene} style={MOON_AT} aria-hidden="true">
+        <look.Backdrop key={look.id} scene={scene} />
+      </div>
       <div className={styles.content}>
         <header className={styles.header}>
           <h1 className={styles.title}>About</h1>

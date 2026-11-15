@@ -1,20 +1,12 @@
 // Turns /api/counts into the datasets the globe draws: each region's raw sightings in one
-// year, in the species' sidebar color. Pillar height and heatmap weight both come from the count.
+// year, in the species' sidebar color. Stamp size and heatmap weight both come from the count.
 
 import type { DataSet } from "../../components/globe_visualization/GlobeVisualization";
-import type { Region } from "../../api/client";
+import type { Basis, Region } from "../../api/client";
 
 // Change colors, still used by the detail panel. A color-blind-safe pair: blue up, orange down.
 export const UP_COLOR = "#3b8bd4";
 export const DOWN_COLOR = "#ef8a3c";
-
-// Pillar heights, as a fraction of the globe's radius
-const MIN_HEIGHT = 0.02;
-const MAX_HEIGHT = 0.5;
-
-// With more than one species, each one's pillar sits this far (degrees) from the state's
-// center, around a circle, so pillars in the same state don't hide each other
-const SPREAD = 0.8;
 
 export function formatPct(value: number | null): string {
   if (value === null) return "no data";
@@ -39,55 +31,135 @@ export function parsePointId(id: string): { speciesKey: string; region: string }
   return { speciesKey: id.slice(0, split), region: id.slice(split + 1) };
 }
 
-function label(name: string, color: string, region: string, count: number, year: number): string {
+function label(name: string, color: string, region: string, count: number, year: number, basis: Basis): string {
   return `
     <div style="color: white; padding: 6px 8px; font: 13px/1.4 system-ui, sans-serif;">
       <strong style="color: ${color}">${name}</strong><br />
-      ${region}: ${count.toLocaleString()} sightings in ${year}<br />
+      ${region}: ${count.toLocaleString()} ${basis === "corrected" ? "population" : "sightings"} in ${year}<br />
       <span style="opacity: 0.7">Click for details</span>
     </div>
   `;
 }
 
-// One dataset per species, for the year at yearIndex. Heights share one scale across
-// every species shown and every year (square root of the count, so small states still
-// show), so species can be compared and pillars grow and shrink along the timeline.
+// The most sightings any shown species has in any region and year: the top of the
+// stamps' size scale, shared so species and years can be compared (the legend uses it too)
+export function maxCount(species: SpeciesSightings[]): number {
+  let max = 1;
+  for (const s of species) {
+    for (const perYear of Object.values(s.counts)) {
+      for (const count of perYear) if (count > max) max = count;
+    }
+  }
+  return max;
+}
+
+// The most sightings one region has in one year, all shown species added together: the
+// heatmap's darkest color, shared across years (the legend uses it too)
+export function maxRegionTotal(species: SpeciesSightings[]): number {
+  const totals = new Map<string, number[]>();
+  let max = 1;
+
+  for (const s of species) {
+    for (const [region, perYear] of Object.entries(s.counts)) {
+      const total = totals.get(region) ?? [];
+      perYear.forEach((count, i) => {
+        total[i] = (total[i] ?? 0) + count;
+        if (total[i] > max) max = total[i];
+      });
+      totals.set(region, total);
+    }
+  }
+
+  return max;
+}
+
+// One dataset per species, for the year at yearIndex. Stamps share one scale across every
+// species shown and every year (area follows the count), so they grow and shrink along the
+// timeline. Species in the same region stack on its center, the biggest at the bottom.
 export function toDatasets(
   species: SpeciesSightings[],
   regions: Region[],
   yearIndex: number,
-  year: number
+  year: number,
+  basis: Basis = "raw"
 ): DataSet[] {
-  let maxCount = 1;
-  for (const s of species) {
-    for (const perYear of Object.values(s.counts)) {
-      for (const count of perYear) if (count > maxCount) maxCount = count;
-    }
+  const max = maxCount(species);
+
+  // Each species' place in its region's stack: 0 for the most sightings
+  const layers = new Map<string, number>();
+  for (const region of regions) {
+    species
+      .map(s => ({ key: s.key, count: s.counts[region.id]?.[yearIndex] ?? 0 }))
+      .filter(entry => entry.count > 0)
+      .sort((a, b) => b.count - a.count)
+      .forEach((entry, layer) => layers.set(pointId(entry.key, region.id), layer));
   }
 
-  return species.map((s, i) => {
-    const angle = (2 * Math.PI * i) / species.length;
-    const dLat = species.length > 1 ? SPREAD * Math.sin(angle) : 0;
-    const dLng = species.length > 1 ? SPREAD * Math.cos(angle) : 0;
+  return species.map(s => ({
+    name: s.name,
+    color: s.color,
+    dataPoints: regions.flatMap(region => {
+      const count = s.counts[region.id]?.[yearIndex] ?? 0;
+      if (count <= 0) return [];
+      const id = pointId(s.key, region.id);
+      const [lat, lng] = region.centroid;
+      return [
+        {
+          id,
+          lat,
+          lng,
+          population: count,
+          size: Math.sqrt(count / max),
+          layer: layers.get(id) ?? 0,
+          label: label(s.name, s.color, region.name, count, year, basis),
+        },
+      ];
+    }),
+  }));
+}
 
-    return {
-      name: s.name,
-      color: s.color,
-      dataPoints: regions.flatMap(region => {
-        const count = s.counts[region.id]?.[yearIndex] ?? 0;
-        if (count <= 0) return [];
-        const [lat, lng] = region.centroid;
-        return [
-          {
-            id: pointId(s.key, region.id),
-            lat: lat + dLat,
-            lng: lng + dLng / Math.max(0.2, Math.cos((lat * Math.PI) / 180)),
-            population: count,
-            height: MIN_HEIGHT + (MAX_HEIGHT - MIN_HEIGHT) * Math.sqrt(count / maxCount),
-            label: label(s.name, s.color, region.name, count, year),
-          },
-        ];
-      }),
-    };
-  });
+/**
+ * Where to point the camera to see one species: the middle of the regions it has sightings in,
+ * weighted by how many, with the camera far enough back to take in the spread. Averaged on the
+ * sphere, so a range that crosses the date line doesn't land on the wrong side of the world.
+ */
+export function viewOfSpecies(
+  perRegion: Record<string, number[]> | undefined,
+  regions: Region[]
+): { lat: number; lng: number; altitude: number } | null {
+  if (!perRegion) return null;
+  const centroids = new Map(regions.map(r => [r.id, r.centroid]));
+  const rad = Math.PI / 180;
+
+  const places: { lat: number; lng: number; weight: number }[] = [];
+  for (const [id, perYear] of Object.entries(perRegion)) {
+    const centroid = centroids.get(id);
+    const weight = perYear.reduce((sum, n) => sum + n, 0);
+    if (centroid && weight > 0) places.push({ lat: centroid[0], lng: centroid[1], weight });
+  }
+  if (places.length === 0) return null;
+
+  let x = 0, y = 0, z = 0, total = 0;
+  for (const p of places) {
+    const w = Math.sqrt(p.weight); // so one very busy state doesn't drag the view away from the rest
+    x += w * Math.cos(p.lat * rad) * Math.cos(p.lng * rad);
+    y += w * Math.cos(p.lat * rad) * Math.sin(p.lng * rad);
+    z += w * Math.sin(p.lat * rad);
+    total += w;
+  }
+  x /= total; y /= total; z /= total;
+  const lat = Math.atan2(z, Math.hypot(x, y)) / rad;
+  const lng = Math.atan2(y, x) / rad;
+
+  // The farthest place from the middle (angle, degrees) sets how far back the camera sits
+  let spread = 0;
+  for (const p of places) {
+    const cos =
+      Math.sin(lat * rad) * Math.sin(p.lat * rad) +
+      Math.cos(lat * rad) * Math.cos(p.lat * rad) * Math.cos((p.lng - lng) * rad);
+    spread = Math.max(spread, Math.acos(Math.min(1, Math.max(-1, cos))) / rad);
+  }
+  const altitude = Math.min(2.6, Math.max(1.1, 0.9 + spread / 30));
+
+  return { lat, lng, altitude };
 }

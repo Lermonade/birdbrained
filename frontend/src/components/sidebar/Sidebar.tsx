@@ -1,564 +1,115 @@
+import type { ReactNode } from "react";
+import { Sparkles } from "lucide-react";
 
-import { useState } from "react";
+import type { Basis } from "../../api/client";
+import { MAX_SELECTED_SPECIES, useContextSettings } from "../../context/Context";
+import { EarthType, VisualizationType } from "../globe_visualization/GlobeVisualization";
 
-import {
-  Filter,
-  SlidersHorizontal,
-  Database,
-  ChevronRight,
-  ArrowLeft,
-  Bird,
-  Search,
-  Trash2,
-  Palette,
-} from "lucide-react";
+import Segmented from "./Segmented";
+import SpeciesAlbum from "./SpeciesAlbum";
 
 import styles from "./sidebar.module.css";
 
-import {
-  useContextSettings,
-  type FilterSettings,
-} from "../../context/Context";
+interface SidebarProps {
+  /** Shown under the birds. Supplies its own heading. */
+  templates?: ReactNode;
+  /** The Analyst section's contents. */
+  analyst?: ReactNode;
+}
 
-import {
-  VisualizationType,
-  EarthType,
-} from "../globe_visualization/GlobeVisualization";
-
-type SidebarPage =
-  | "menu"
-  | "filters"
-  | "visualization"
-  | "data"
-  | "species";
-
-export default function Sidebar() {
-  const [activePage, setActivePage] =
-    useState<SidebarPage>("menu");
-
+// One scroll: Birds, Templates, Display, Analyst. Each heading sticks to the top while
+// its section scrolls by, and a row of perforations tears one section from the next.
+export default function Sidebar({ templates, analyst }: SidebarProps) {
   const {
     settings,
     setDataDisplayType,
+    setDataBasis,
     setEarthDisplayType,
-    updateFilters,
-    allSpecies,
     selectedSpecies,
-    addSelectedSpecies,
-    removeSelectedSpecies,
-    updateSpeciesColor,
   } = useContextSettings();
-
-  const [filterInputs, setFilterInputs] =
-    useState<FilterSettings>(settings.filters);
-
-  const [searchQuery, setSearchQuery] = useState("");
-
-  const [activeSpeciesId, setActiveSpeciesId] =
-    useState<number | null>(null);
-
-  const [navigationDirection, setNavigationDirection] =
-    useState<"forward" | "back">("forward");
-
-  const activeSpecies = selectedSpecies.find(
-    species => species.id === activeSpeciesId
-  );
-
-  function navigateTo(page: SidebarPage) {
-    setNavigationDirection("forward");
-    setActivePage(page);
-  }
-
-  function goBack() {
-    setNavigationDirection("back");
-
-    if (activePage === "species") {
-      setActiveSpeciesId(null);
-    }
-
-    setActivePage("menu");
-  }
-
-  function handleFilterChange(
-    field: keyof FilterSettings,
-    value: string
-  ) {
-    const updatedFilters = {
-      ...filterInputs,
-      [field]: value,
-    };
-
-    setFilterInputs(updatedFilters);
-    updateFilters(updatedFilters);
-  }
-
-  // Filter species by name and exclude already selected birds.
-  const matchingSpecies = allSpecies.filter(species => {
-    const matchesSearch = species.name
-      .toLowerCase()
-      .includes(searchQuery.trim().toLowerCase());
-
-    const alreadySelected = selectedSpecies.some(
-      selected => selected.id === species.id
-    );
-
-    return matchesSearch && !alreadySelected;
-  });
-
-  async function handleSpeciesSelect(
-    species: (typeof allSpecies)[number]
-    ) {
-    await addSelectedSpecies(species.id);
-    setSearchQuery("");
-    }
-
-  function handleSpeciesDelete() {
-    if (!activeSpecies) return;
-
-    removeSelectedSpecies(activeSpecies.id);
-    setActiveSpeciesId(null);
-    setNavigationDirection("back");
-    setActivePage("menu");
-  }
 
   return (
     <aside className={styles.sidebar}>
-      <div
-        className={`${styles.content} ${
-          navigationDirection === "forward"
-            ? styles.contentForward
-            : styles.contentBack
-        }`}
-        key={activePage}
-      >
+      <div className={styles.scroll}>
+        <section aria-labelledby="sidebar-birds">
+          <header className={styles.header}>
+            <h2 id="sidebar-birds" className={styles.title}>
+              Birds
+            </h2>
+            <span className={styles.count}>
+              {selectedSpecies.length} / {MAX_SELECTED_SPECIES}
+            </span>
+          </header>
 
-        {/* MAIN MENU */}
-        {activePage === "menu" && (
-          <div className={styles.page}>
-            <h2 className={styles.heading}>Options</h2>
+          <SpeciesAlbum />
+        </section>
 
-            <button
-              className={styles.menuItem}
-              onClick={() => navigateTo("filters")}
-            >
-              <span className={styles.menuLabel}>
-                <Filter size={19} />
-                Filters
-              </span>
+        {templates && (
+          <>
+            <hr className={styles.tear} />
+            {templates}
+          </>
+        )}
 
-              <ChevronRight
-                size={18}
-                className={styles.arrow}
-              />
-            </button>
+        <hr className={styles.tear} />
 
-            <button
-              className={styles.menuItem}
-              onClick={() => navigateTo("visualization")}
-            >
-              <span className={styles.menuLabel}>
-                <SlidersHorizontal size={19} />
-                Visualization
-              </span>
+        <section aria-labelledby="sidebar-display">
+          <header className={styles.header}>
+            <h2 id="sidebar-display" className={styles.title}>
+              Display
+            </h2>
+          </header>
 
-              <ChevronRight
-                size={18}
-                className={styles.arrow}
-              />
-            </button>
+          <div className={styles.settings}>
+            <Segmented<VisualizationType>
+              legend="Marks"
+              value={settings.dataDisplayType}
+              onChange={setDataDisplayType}
+              options={[
+                { value: VisualizationType.STAMPS, label: "Stamps" },
+                { value: VisualizationType.HEATMAP, label: "Heatmap" },
+              ]}
+            />
 
-            <button
-              className={styles.menuItem}
-              onClick={() => navigateTo("data")}
-            >
-              <span className={styles.menuLabel}>
-                <Database size={19} />
-                Data Settings
-              </span>
+            <Segmented<Basis>
+              legend="Sightings"
+              value={settings.dataBasis}
+              onChange={setDataBasis}
+              options={[
+                { value: "corrected", label: "Corrected", title: "Corrected for birder effort" },
+                { value: "raw", label: "Raw" },
+              ]}
+            />
 
-              <ChevronRight
-                size={18}
-                className={styles.arrow}
-              />
-            </button>
+            <Segmented<EarthType>
+              legend="Earth"
+              value={settings.earthDisplayType}
+              onChange={setEarthDisplayType}
+              options={[
+                { value: EarthType.TEXTURED, label: "Textured" },
+                { value: EarthType.PLAIN, label: "Plain" },
+                { value: EarthType.WIREFRAME, label: "Wireframe" },
+              ]}
+            />
+          </div>
+        </section>
 
-            {/* SPECIES SELECTOR */}
-            <section className={styles.speciesSection}>
+        {analyst && (
+          <>
+            <hr className={styles.tear} />
 
-              <div className={styles.speciesHeader}>
-                <h2 className={styles.heading}>
-                  Species
+            <section aria-labelledby="sidebar-analyst">
+              <header className={styles.header}>
+                <h2 id="sidebar-analyst" className={styles.title}>
+                  <Sparkles size={18} aria-hidden="true" />
+                  Analyst
                 </h2>
+              </header>
 
-                <span className={styles.speciesCount}>
-                  {selectedSpecies.length}/10
-                </span>
-              </div>
-
-              {/* SEARCH BAR */}
-              <div className={styles.speciesSearch}>
-                <Search size={17} />
-
-                <input
-                  type="text"
-                  placeholder="Search species..."
-                  value={searchQuery}
-                  onChange={e =>
-                    setSearchQuery(e.target.value)
-                  }
-                />
-              </div>
-
-              {/* SEARCH RESULTS */}
-              {searchQuery.trim() !== "" && (
-                <div className={styles.speciesResults}>
-
-                  {selectedSpecies.length >= 10 ? (
-                    <p className={styles.speciesEmpty}>
-                      Maximum of 10 species selected.
-                    </p>
-                  ) : matchingSpecies.length > 0 ? (
-
-                    matchingSpecies.map(species => (
-                      <button
-                        key={species.id}
-                        className={styles.speciesResult}
-                        onClick={() =>
-                          handleSpeciesSelect(species)
-                        }
-                      >
-                        <div
-                          className={styles.speciesIcon}
-                          style={{
-                            backgroundColor: species.color,
-                          }}
-                        >
-                          <Bird
-                            size={21}
-                            color="#ffffff"
-                          />
-                        </div>
-
-                        <div className={styles.speciesInfo}>
-                          <span className={styles.speciesName}>
-                            {species.name}
-                          </span>
-
-                          <span className={styles.speciesSubtitle}>
-                            {species.sightings.toLocaleString()} total sightings
-                          </span>
-                        </div>
-                      </button>
-                    ))
-
-                  ) : (
-                    <p className={styles.speciesEmpty}>
-                      No matching species found.
-                    </p>
-                  )}
-
-                </div>
-              )}
-
-              {/* SELECTED SPECIES */}
-              {searchQuery.trim() === "" && (
-                <div className={styles.speciesList}>
-                  {selectedSpecies.map(species => (
-                    <button
-                      className={styles.speciesItem}
-                      key={species.id}
-                      onClick={() => {
-                        setActiveSpeciesId(species.id);
-                        navigateTo("species");
-                      }}
-                    >
-                      <div
-                        className={styles.speciesIcon}
-                        style={{
-                          backgroundColor: species.color,
-                        }}
-                      >
-                        <Bird
-                          size={23}
-                          color="#ffffff"
-                        />
-                      </div>
-
-                      <div className={styles.speciesInfo}>
-                        <span className={styles.speciesName}>
-                          {species.name}
-                        </span>
-
-                        <span className={styles.speciesSubtitle}>
-                          {species.sightings.toLocaleString()} total sightings
-                        </span>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              )}
-
+              {analyst}
             </section>
-          </div>
+          </>
         )}
-
-        {/* FILTERS */}
-        {activePage === "filters" && (
-          <div className={styles.page}>
-            <button
-              className={styles.backButton}
-              onClick={goBack}
-            >
-              <ArrowLeft size={18} />
-              Back
-            </button>
-
-            <h2 className={styles.heading}>Filters</h2>
-
-            <div className="select-field">
-              <label htmlFor="start-date">
-                Start Date
-              </label>
-
-              <input
-                id="start-date"
-                type="date"
-                value={filterInputs.startDate}
-                onChange={e =>
-                  handleFilterChange(
-                    "startDate",
-                    e.target.value
-                  )
-                }
-              />
-            </div>
-
-            <div className="select-field">
-              <label htmlFor="start-time">
-                Start Time
-              </label>
-
-              <input
-                id="start-time"
-                type="time"
-                step={60}
-                value={filterInputs.startTime}
-                onChange={e =>
-                  handleFilterChange(
-                    "startTime",
-                    e.target.value
-                  )
-                }
-              />
-            </div>
-
-            <div className="select-field">
-              <label htmlFor="end-date">
-                End Date
-              </label>
-
-              <input
-                id="end-date"
-                type="date"
-                value={filterInputs.endDate}
-                onChange={e =>
-                  handleFilterChange(
-                    "endDate",
-                    e.target.value
-                  )
-                }
-              />
-            </div>
-
-            <div className="select-field">
-              <label htmlFor="end-time">
-                End Time
-              </label>
-
-              <input
-                id="end-time"
-                type="time"
-                step={60}
-                value={filterInputs.endTime}
-                onChange={e =>
-                  handleFilterChange(
-                    "endTime",
-                    e.target.value
-                  )
-                }
-              />
-            </div>
-          </div>
-        )}
-
-        {/* VISUALIZATION */}
-        {activePage === "visualization" && (
-          <div className={styles.page}>
-            <button
-              className={styles.backButton}
-              onClick={goBack}
-            >
-              <ArrowLeft size={18} />
-              Back
-            </button>
-
-            <h2 className={styles.heading}>
-              Visualization
-            </h2>
-
-            <div className={styles.settingsGroup}>
-              <div className="select-field">
-                <label htmlFor="data-display">
-                  Data Display Type
-                </label>
-
-                <select
-                  id="data-display"
-                  value={settings.dataDisplayType}
-                  onChange={e =>
-                    setDataDisplayType(
-                      e.target.value as VisualizationType
-                    )
-                  }
-                >
-                  <option value="pillars">
-                    Pillars
-                  </option>
-
-                  <option value="points">
-                    Points
-                  </option>
-
-                  <option value="heatmap">
-                    Heatmap
-                  </option>
-
-                  <option value="multicolor-heatmap">
-                    Multicolored Heatmap
-                  </option>
-                </select>
-              </div>
-
-              <div className="select-field">
-                <label htmlFor="earth-display">
-                  Earth Display Type
-                </label>
-
-                <select
-                  id="earth-display"
-                  value={settings.earthDisplayType}
-                  onChange={e =>
-                    setEarthDisplayType(
-                      e.target.value as EarthType
-                    )
-                  }
-                >
-                  <option value="textured">
-                    Textured
-                  </option>
-
-                  <option value="plain">
-                    Plain
-                  </option>
-
-                  <option value="wireframe">
-                    Wireframe
-                  </option>
-                </select>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* DATA SETTINGS */}
-        {activePage === "data" && (
-          <div className={styles.page}>
-            <button
-              className={styles.backButton}
-              onClick={goBack}
-            >
-              <ArrowLeft size={18} />
-              Back
-            </button>
-
-            <h2 className={styles.heading}>
-              Data Settings
-            </h2>
-          </div>
-        )}
-
-        {/* SPECIES SETTINGS */}
-        {activePage === "species" && activeSpecies && (
-          <div className={styles.page}>
-            <button
-              className={styles.backButton}
-              onClick={goBack}
-            >
-              <ArrowLeft size={18} />
-              Back
-            </button>
-
-            {/* SPECIES HEADER */}
-            <div className={styles.speciesDetailHeader}>
-              <div
-                className={styles.speciesDetailIcon}
-                style={{
-                  backgroundColor: activeSpecies.color,
-                }}
-              >
-                <Bird size={32} color="#ffffff" />
-              </div>
-
-              <div className={styles.speciesInfo}>
-                <h2 className={styles.speciesDetailName}>
-                  {activeSpecies.name}
-                </h2>
-
-                <span className={styles.speciesSubtitle}>
-                  {activeSpecies.sightings.toLocaleString()} total sightings
-                </span>
-              </div>
-            </div>
-
-            {/* COLOR SETTINGS */}
-            <div className={styles.speciesSetting}>
-              <div className={styles.settingHeading}>
-                <Palette size={18} />
-                <span>Visualization Color</span>
-              </div>
-
-              <div className={styles.colorPickerRow}>
-                <input
-                  type="color"
-                  value={activeSpecies.color}
-                  onChange={e =>
-                    updateSpeciesColor(
-                      activeSpecies.id,
-                      e.target.value
-                    )
-                  }
-                  className={styles.colorPicker}
-                  aria-label="Choose species visualization color"
-                />
-
-                <span className={styles.colorValue}>
-                  {activeSpecies.color.toUpperCase()}
-                </span>
-              </div>
-            </div>
-
-            {/* DELETE SPECIES */}
-            <div className={styles.speciesDeleteSection}>
-              <button
-                className={styles.deleteSpeciesButton}
-                onClick={handleSpeciesDelete}
-              >
-                <Trash2 size={17} />
-                Remove Species
-              </button>
-            </div>
-          </div>
-        )}
-
       </div>
     </aside>
   );

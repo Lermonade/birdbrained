@@ -91,6 +91,12 @@ NO_DATA = {"trend": None, "rawTrend": None, "sufficiency": {"label": "insufficie
            "secondSource": None}
 
 
+def answerable_regions() -> dict[str, list[str]]:
+    """For every species, the regions with enough data for a trend: the ones the analyst can answer about."""
+    return {key: [region for region, entry in entries.items() if entry["sufficiency"]["label"] != "insufficient"]
+            for key, entries in _pipeline("trends.json").items()}
+
+
 def trend_entry(species_key: str, region_id: str) -> dict:
     """The trends.json entry for one species-region, or an insufficient one where the species isn't reported."""
     return trends(species_key).get(region_id, NO_DATA)
@@ -111,9 +117,28 @@ def counts(species_key: str, region_id: str) -> list[int] | None:
     return _pipeline("counts.json").get(species_key, {}).get(region_id)
 
 
-def species_counts(species_key: str) -> dict[str, list[int]]:
-    """The species' record count per series year in every region it has any."""
-    return {region: n for region, n in _pipeline("counts.json").get(species_key, {}).items() if any(n)}
+def species_counts(species_key: str, corrected: bool = False) -> dict[str, list[int]]:
+    """The species' record count per series year in every region it has any.
+
+    corrected=True gives the count the species would have had at the base years' birding effort:
+    each raw count times (corrected index / raw index), which is its share of all bird records
+    times a constant. Years without enough data (index is null) are 0.
+    """
+    raw = {region: n for region, n in _pipeline("counts.json").get(species_key, {}).items() if any(n)}
+    if not corrected:
+        return raw
+
+    indexes = series(species_key)["regions"]
+    adjusted = {}
+    for region, n in raw.items():
+        index = indexes.get(region)
+        if index is None:
+            continue
+        adjusted[region] = [
+            round(count * fixed / unfixed) if fixed is not None and unfixed else 0
+            for count, fixed, unfixed in zip(n, index["corrected"], index["raw"])
+        ]
+    return {region: n for region, n in adjusted.items() if any(n)}
 
 
 def years() -> list[int]:

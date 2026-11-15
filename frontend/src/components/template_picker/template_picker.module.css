@@ -1,0 +1,175 @@
+/* The templates in the sidebar, as small photo prints. Lives inside .sidebar, so it picks
+   up the look's sky and ink from there (--bg, --text, --muted, --accent, --paper, --print);
+   the fallbacks are for anywhere else. */
+.picker {
+  --ink: var(--text, var(--landing-ink, #fbf1dc));
+  --ink-dim: var(--muted, var(--landing-ink-dim, rgba(251, 241, 220, 0.84)));
+  --mint: var(--accent, #9fd1b2);
+  --sheet: var(--paper, var(--landing-ink, #fbf1dc));
+  --sky-solid: var(--bg, var(--sky, #0b1d2c));
+  --offset: var(--print, #e9965a);
+
+  container-type: inline-size;
+}
+
+/* Same sticky heading as the sidebar's other sections */
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 1.1rem 0 0.8rem;
+  background: var(--sky-solid);
+}
+
+.heading {
+  font-family: var(--display);
+  font-size: 1.45rem;
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: 0.01em;
+}
+
+.all {
+  padding: 0.2rem 0;
+  border: none;
+  background: transparent;
+  color: var(--ink-dim);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.all:hover:not(:disabled),
+.all:focus-visible {
+  color: var(--mint);
+  outline: none;
+}
+
+.all:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.9rem 0.8rem;
+  padding: 6px 8px 4px 0;
+  list-style: none;
+}
+
+@container (max-width: 240px) {
+  .list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* One print: paper around the photo, a flat offset shadow. Pressed flat when on. */
+.print {
+  --lift: 0px;
+
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  padding: 5px 5px 7px;
+  border: none;
+  border-radius: 3px;
+  background: var(--sheet);
+  color: var(--sky-solid);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: calc(4px - var(--lift)) calc(4px - var(--lift)) 0 var(--offset);
+  transform: translate(var(--lift), var(--lift));
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.print:hover:not(:disabled) {
+  --lift: 1.5px;
+}
+
+.print[aria-pressed="true"] {
+  --lift: 4px;
+}
+
+.print:focus-visible {
+  outline: 2px solid var(--mint);
+  outline-offset: 3px;
+}
+
+.print:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.photo {
+  display: block;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border: 1.5px solid var(--sky-solid);
+}
+
+.photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: saturate(0.92) contrast(1.04);
+}
+
+.name {
+  margin-top: 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 750;
+  line-height: 1.15;
+}
+
+.where {
+  overflow: hidden;
+  margin-top: 0.1rem;
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+  opacity: 0.7;
+}
+
+/* The postmark: shows when the bird is on the globe */
+.badge {
+  position: absolute;
+  top: -7px;
+  right: -7px;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border: 2px solid var(--sky-solid);
+  border-radius: 50%;
+  background: var(--mint);
+  color: var(--sky-solid);
+  transform: scale(0) rotate(-30deg);
+  transition: transform 0.22s cubic-bezier(0.2, 1.4, 0.4, 1);
+}
+
+.print[aria-pressed="true"] .badge {
+  transform: scale(1) rotate(-12deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .print,
+  .badge,
+  .all {
+    transition: none;
+  }
+}

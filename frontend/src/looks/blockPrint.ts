@@ -97,6 +97,7 @@ export const blockPrint: Look = {
     earth: { ocean: INK, paint },
     shell: { shadow: "#081511", shadowAlpha: 0.36, outline: PAPER, outlineAlpha: 0.95 },
     ringColor: "201, 88, 59",
+    markOutline: INK, // the land is paper, so the rim is cut in ink
     wireframeColor: PAPER,
   },
   Backdrop: BlockPrintBackdrop,

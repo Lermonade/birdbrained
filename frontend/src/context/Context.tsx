@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from "react";
 
+import type { Basis } from "../api/client";
 import {
   VisualizationType,
   EarthType,
@@ -38,6 +39,7 @@ interface SpeciesInput {
 
 interface Settings {
   dataDisplayType: VisualizationType;
+  dataBasis: Basis;
   earthDisplayType: EarthType;
   filters: FilterSettings;
 }
@@ -46,6 +48,7 @@ interface ContextType {
   settings: Settings;
 
   setDataDisplayType: (value: VisualizationType) => void;
+  setDataBasis: (value: Basis) => void;
   setEarthDisplayType: (value: EarthType) => void;
   updateFilters: (filters: FilterSettings) => void;
 
@@ -65,7 +68,7 @@ interface ContextType {
 // Configuration
 // --------------------------------------------------
 
-const MAX_SELECTED_SPECIES = 10;
+export const MAX_SELECTED_SPECIES = 10;
 
 const SPECIES_COLORS = [
   "#B66D6D",
@@ -156,7 +159,8 @@ export function ContextProvider({
   // ------------------------------------------------
 
   const [settings, setSettings] = useState<Settings>({
-    dataDisplayType: VisualizationType.PILLARS,
+    dataDisplayType: VisualizationType.STAMPS,
+    dataBasis: "corrected",
     earthDisplayType: EarthType.TEXTURED,
     filters: initialFilters,
   });
@@ -238,6 +242,21 @@ export function ContextProvider({
 
       if (!speciesExists) return;
 
+      // Colors repeat every 10 species in the catalog, so a new species can match one
+      // already shown. Give it the first color nobody shown is using (there's always one,
+      // with at most 10 shown); it keeps that color from then on.
+      const shownColors = new Set(
+        allSpeciesRef.current
+          .filter(species => selectedSpeciesIdsRef.current.includes(species.id))
+          .map(species => species.color.toLowerCase())
+      );
+      const added = allSpeciesRef.current.find(species => species.id === id);
+      const free = SPECIES_COLORS.find(color => !shownColors.has(color.toLowerCase()));
+
+      if (added && free && shownColors.has(added.color.toLowerCase())) {
+        updateSpeciesColor(id, free);
+      }
+
       const updatedIds = [
         ...selectedSpeciesIdsRef.current,
         id,
@@ -246,7 +265,7 @@ export function ContextProvider({
       selectedSpeciesIdsRef.current = updatedIds;
       setSelectedSpeciesIds(updatedIds);
     },
-    []
+    [updateSpeciesColor]
   );
 
   // ------------------------------------------------
@@ -275,6 +294,16 @@ export function ContextProvider({
       setSettings(current => ({
         ...current,
         dataDisplayType: value,
+      }));
+    },
+    []
+  );
+
+  const setDataBasis = useCallback(
+    (value: Basis) => {
+      setSettings(current => ({
+        ...current,
+        dataBasis: value,
       }));
     },
     []
@@ -316,6 +345,7 @@ export function ContextProvider({
         settings,
 
         setDataDisplayType,
+        setDataBasis,
         setEarthDisplayType,
         updateFilters,
 

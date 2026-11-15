@@ -1,22 +1,21 @@
-// The three templates: one bird each from North America, South America and Australia,
-// each found almost only on its own continent (99% or more of its records). One falls,
-// one holds steady and one rises, plainly enough to see in the stamps as the timeline
-// plays. Each one's years are where its regions keep steady coverage, so stamps don't
-// pop in as more people start recording (a region with too few records in a year has
-// no stamp that year):
+// The three templates: one bird each from North America, Asia and Australia, each found
+// almost only on its own continent (99% or more of its records). One falls and two rise,
+// plainly enough to see in the stamps as the timeline plays. Each one's years are where
+// its biggest regions keep steady coverage, so the main stamps don't pop in as more
+// people start recording (a region with too few records in a year has no stamp that year):
 // - Great Horned Owl, 2016 to 2025: falling. The typical state ends at about two thirds
-//   of where it started (Colorado 281 to 157), 24 states falling on its trend to 2 rising.
-// - Rufous Hornero, 2021 to 2025: steady. The big stamps barely move (Buenos Aires 377
-//   to 396, Córdoba 387 to 395, Montevideo 300 to 331).
+//   of where it started (Colorado 281 to 157), 51 regions falling on its trend to 8 rising.
+// - Asian Koel, 2016 to 2020: rising. The big Indian stamps grow plainly (Karnataka 703
+//   to 1,179, Tamil Nadu 651 to 1,265), 18 regions rising on its trend to 3 falling.
 // - Noisy Miner, 2012 to 2025: rising. The total grows from 2,067 to 3,481 across the
-//   same 6 states.
+//   same 6 states, all of them rising.
 // The Templates page shows them as cards; the dashboard opens on one (?template=<id>)
 // and offers the other two as shortcuts.
 
 import type { GlobeView } from "../../components/globe_visualization/GlobeVisualization";
 
 import greatHornedOwl from "../../assets/templates/great-horned-owl.jpg";
-import rufousHornero from "../../assets/templates/rufous-hornero.jpg";
+import asianKoel from "../../assets/templates/asian-koel.jpg";
 import noisyMiner from "../../assets/templates/noisy-miner.jpg";
 
 export interface BirdTemplate {
@@ -55,19 +54,19 @@ export const TEMPLATES: BirdTemplate[] = [
       "https://commons.wikimedia.org/wiki/File:Great_Horned_Owl_(30706490070).jpg",
   },
   {
-    id: "rufous-hornero",
-    speciesKey: "rufous_hornero",
-    species: "Rufous Hornero",
-    region: "South America",
-    startYear: 2021,
-    endYear: 2025,
-    view: { lat: -30, lng: -58, altitude: 1.7 },
-    imageUrl: rufousHornero,
+    id: "asian-koel",
+    speciesKey: "asian_koel",
+    species: "Asian Koel",
+    region: "Asia",
+    startYear: 2016,
+    endYear: 2020,
+    view: { lat: 20, lng: 80, altitude: 1.7 },
+    imageUrl: asianKoel,
     imageAlt:
-      "A rusty-brown Rufous Hornero with a red eye striding along a fallen log",
-    credit: "Charles J. Sharp, CC BY-SA 4.0",
+      "A glossy blue-black male Asian Koel with a red eye and pale bill perched on a wooden rail",
+    credit: "K Hari Krishnan, CC BY-SA 3.0",
     creditUrl:
-      "https://commons.wikimedia.org/wiki/File:Rufous_hornero_(Furnarius_rufus)_Colonia.jpg",
+      "https://commons.wikimedia.org/wiki/File:Asian_Koel_(Eudynamys_scolopaceus)_Male_-_Tirunelveli.jpg",
   },
   {
     id: "noisy-miner",

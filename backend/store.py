@@ -124,11 +124,12 @@ def all_birds_trend(region_id: str) -> dict:
 
 
 def change_map(species_key: str, start: int, end: int) -> dict:
-    """For the globe: each state's corrected change between two years, with raw sightings for context.
+    """For the globe: each state's corrected and raw change between two years.
 
-    The change comes from the trend fitted to the years from start to end (so one odd year at either
-    end can't flip it). Every state with data gets a best-estimate direction; confident is false when
-    the 95% interval crosses zero. Raw sighting counts are included for context only.
+    Both changes come from a trend fitted to the years from start to end (so one odd year at either
+    end can't flip it), computed the same way, so a Raw vs Corrected toggle compares like with like.
+    Every state with data gets a best-estimate direction; confident is false when the corrected 95%
+    interval crosses zero.
     """
     all_years = years()
     i, j = all_years.index(start), all_years.index(end)
@@ -140,6 +141,7 @@ def change_map(species_key: str, start: int, end: int) -> dict:
             continue  # the species is not recorded in this state in either year
         corrected = regional[region["id"]]["corrected"]
         window = window_trend(corrected, all_years, start, end)
+        raw_window = window_trend(regional[region["id"]]["raw"], all_years, start, end)
         points.append({
             "region": region["id"],
             "name": region["name"],
@@ -156,7 +158,8 @@ def change_map(species_key: str, start: int, end: int) -> dict:
             "endIndex": corrected[j],
             "startCount": n[i],
             "endCount": n[j],
-            "rawChangePct": change_pct(n[i], n[j]),
+            "rawChangePct": raw_window["changePct"] if raw_window else None,
+            "rawDirection": raw_window["direction"] if raw_window else None,
         })
     return {"key": species_key, "name": find_species(species_key)["commonName"], "dataPoints": points}
 

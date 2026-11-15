@@ -1,9 +1,9 @@
-/* Same sky, paper and green as the landing and dashboard; the look (src/looks)
-   supplies --sky and --landing-ink. */
+
+/* Page layout */
 .page {
   min-height: 100dvh;
   width: 100%;
-  padding: calc(var(--nav-h) + 3rem) 5vw 5rem; /* the navbar floats over the top */
+  padding: calc(var(--nav-h) + 3.5rem) 5vw 5rem;
   background: var(--sky, #0b1d2c);
   color: var(--landing-ink, #fbf1dc);
 }
@@ -11,6 +11,16 @@
 .content {
   max-width: 46rem;
   margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Header */
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
 .title {
@@ -21,16 +31,21 @@
 }
 
 .lead {
-  margin-top: 0.75rem;
   color: var(--landing-ink-dim, rgba(251, 241, 220, 0.84));
   font-size: clamp(1.05rem, 0.6vw + 0.9rem, 1.35rem);
+  line-height: 1.6;
   text-wrap: balance;
 }
 
-/* A paper card, like the sidebar */
+/* Cards */
+.cards {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
 .card {
-  margin-top: 2.5rem;
-  padding: 1.5rem 1.75rem;
+  padding: 1.75rem;
   border-radius: 12px;
   background: var(--bg);
   color: var(--text);
@@ -38,12 +53,48 @@
 }
 
 .card h2 {
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.65rem;
   color: var(--accent);
   font-size: 1.2rem;
   font-weight: 700;
 }
 
-.card p + p {
-  margin-top: 0.75rem;
+.card p {
+  line-height: 1.7;
+}
+
+/* Image lightbox */
+.imageWrapper {
+  padding: 1rem;
+  border-radius: 14px;
+  background: var(--bg);
+  box-shadow: var(--shadow);
+}
+
+.image {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+  .page {
+    padding: calc(var(--nav-h) + 2.5rem) 6vw 4rem;
+  }
+
+  .content,
+  .cards {
+    gap: 1.25rem;
+  }
+
+  .card {
+    padding: 1.35rem;
+  }
+
+  .imageWrapper {
+    padding: 0.65rem;
+  }
 }

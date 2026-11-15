@@ -1,0 +1,154 @@
+/* The sidebar's Analyst page. Lives inside .sidebar, so it picks up the look's sky and ink
+   from there (--bg, --text, --muted, --line, --accent); the fallbacks are for anywhere else. */
+.analyst {
+  --ink: var(--text, var(--landing-ink, #fbf1dc));
+  --ink-dim: var(--muted, var(--landing-ink-dim, rgba(251, 241, 220, 0.84)));
+  --rule: var(--line, color-mix(in srgb, var(--ink) 22%, transparent));
+  --mint: var(--accent, #9fd1b2);
+  --sky-solid: var(--bg, var(--sky, #0b1d2c));
+
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding-bottom: 1rem;
+  color: var(--ink);
+}
+
+.intro {
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: var(--ink-dim);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+}
+
+.question {
+  width: 100%;
+  min-height: 74px;
+  box-sizing: border-box;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid #aaa99f;
+  border-radius: 6px;
+  background-color: var(--sky-solid);
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  resize: vertical;
+  outline: none;
+}
+
+.question::placeholder {
+  color: var(--ink-dim);
+}
+
+.question:focus-visible {
+  border-color: var(--mint);
+}
+
+.suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: -0.25rem 0 1rem;
+}
+
+.suggestion {
+  padding: 0.3rem 0.6rem;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-dim);
+  font-family: inherit;
+  font-size: 0.75rem;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.suggestion:hover,
+.suggestion:focus-visible {
+  border-color: var(--mint);
+  color: var(--mint);
+  outline: none;
+}
+
+.askButton,
+.retry {
+  width: 100%;
+  padding: 0.65rem;
+  border: none;
+  border-radius: 6px;
+  background: var(--mint);
+  color: var(--sky-solid);
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.askButton:hover:not(:disabled),
+.retry:hover {
+  filter: brightness(1.1);
+}
+
+.askButton:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.askButton:focus-visible,
+.retry:focus-visible {
+  outline: 2px solid var(--mint);
+  outline-offset: 2px;
+}
+
+.hint {
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--ink-dim);
+  text-align: center;
+}
+
+.result {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--rule);
+}
+
+.asked {
+  font-size: 0.85rem;
+}
+
+.askedQuestion {
+  margin-top: 0.15rem;
+  font-style: italic;
+  color: var(--ink-dim);
+}
+
+.loading {
+  font-size: 0.85rem;
+  font-style: italic;
+  color: var(--ink-dim);
+}
+
+.error {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: #f2a08f;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .suggestion {
+    transition: none;
+  }
+}

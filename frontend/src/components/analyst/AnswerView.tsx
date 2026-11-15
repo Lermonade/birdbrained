@@ -1,4 +1,4 @@
-import { ApiError, type AskResponse } from "../../api/client";
+import type { AskResponse } from "../../api/client";
 
 import styles from "./answer.module.css";
 
@@ -8,14 +8,6 @@ const CONFIDENCE_LABEL: Record<string, string> = {
   low: "Low confidence",
   untested: "Untested",
 };
-
-/** What to tell the reader when a question to the analyst fails. */
-export function askErrorMessage(error: unknown): string {
-  if (error instanceof ApiError && error.status === 503) {
-    return "The analyst is busy right now. Try again in a minute.";
-  }
-  return error instanceof Error ? error.message : "Something went wrong.";
-}
 
 interface AnswerViewProps {
   result: AskResponse;

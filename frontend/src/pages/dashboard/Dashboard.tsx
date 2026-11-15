@@ -16,6 +16,8 @@ import type { Scene } from "../../components/landing/timeline";
 import Timeline from "../../components/timeline/Timeline";
 import Legend from "../../components/legend/Legend";
 import TemplatePicker from "../../components/template_picker/TemplatePicker";
+import AnalystPanel from "../../components/analyst/AnalystPanel";
+import { useAnalyst } from "../../components/analyst/useAnalyst";
 import { api, API_BASE } from "../../api/client";
 import type { CountsData, GrabData, Region, Species } from "../../api/client";
 import { ContextProvider, useContextSettings } from "../../context/Context";
@@ -100,6 +102,10 @@ function DashboardContent() {
   // The state clicked on the globe, and the species whose stamp it was
   const [selected, setSelected] = useState<{ speciesKey: string; region: string } | null>(null);
   const [focus, setFocus] = useState<GlobeView>(() => openedWith?.view ?? US_VIEW);
+
+  // The sidebar's analyst. Kept here so an answer on its way survives leaving its page.
+  const analyst = useAnalyst();
+  const chooseForAnalyst = analyst.choose;
 
   // The stamps come up when the landing's bird reaches the globe, and go again
   // if the scene is rewound. Loading the dashboard directly, they're up from the start.
@@ -213,9 +219,11 @@ function DashboardContent() {
 
   const handlePointClick = useCallback((point: DataPoint) => {
     if (!point.id) return;
-    setSelected(parsePointId(point.id));
+    const clicked = parsePointId(point.id);
+    setSelected(clicked);
+    chooseForAnalyst(clicked.speciesKey, clicked.region); // the analyst asks about the clicked state next
     setFocus({ lat: point.lat, lng: point.lng, altitude: STATE_ALTITUDE });
-  }, []);
+  }, [chooseForAnalyst]);
 
   // The sidebar's templates: any number can be on at once. A template is on while its
   // bird is on the globe, however it got there.
@@ -431,6 +439,16 @@ function DashboardContent() {
                 full={selectedSpeciesIds.length >= MAX_SHOWN_SPECIES}
                 onToggle={toggleTemplate}
                 onToggleAll={toggleAllTemplates}
+              />
+            }
+            analyst={
+              <AnalystPanel
+                analyst={analyst}
+                catalog={catalog}
+                shownKeys={shownSpecies.map(s => s.key)}
+                regions={regions}
+                start={range?.start}
+                end={range?.end}
               />
             }
           />

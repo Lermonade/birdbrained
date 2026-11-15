@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 
-import { api, ApiError } from "../../api/client";
+import { api } from "../../api/client";
 import type { AskResponse, Detail, GrabPoint } from "../../api/client";
+import AnswerView from "../analyst/AnswerView";
+import { askErrorMessage } from "../analyst/askErrorMessage";
 import { DOWN_COLOR, UP_COLOR, formatPct } from "../../pages/dashboard/globeData";
 
 import styles from "./detail_panel.module.css";
@@ -23,13 +25,6 @@ type AskState =
   | { status: "loading" }
   | { status: "done"; result: AskResponse }
   | { status: "error"; message: string };
-
-const CONFIDENCE_LABEL: Record<string, string> = {
-  high: "High confidence",
-  medium: "Medium confidence",
-  low: "Low confidence",
-  untested: "Untested",
-};
 
 // Remount this component (via its key) when the species, state or years change, so it starts fresh.
 export default function DetailPanel({
@@ -65,17 +60,7 @@ export default function DetailPanel({
     api
       .ask({ question: "Why is this happening?", species: speciesKey, region: regionId, start, end })
       .then(result => setAsk({ status: "done", result }))
-      .catch(error =>
-        setAsk({
-          status: "error",
-          message:
-            error instanceof ApiError && error.status === 503
-              ? "The analyst is busy right now. Try again in a minute."
-              : error instanceof Error
-                ? error.message
-                : "Something went wrong.",
-        })
-      );
+      .catch(error => setAsk({ status: "error", message: askErrorMessage(error) }));
   }
 
   const ok = point?.status === "ok";
@@ -149,55 +134,7 @@ export default function DetailPanel({
         </div>
       )}
 
-      {ask.status === "done" && <AnswerView result={ask.result} />}
+      {ask.status === "done" && <AnswerView result={ask.result} title="Analyst" />}
     </aside>
-  );
-}
-
-function AnswerView({ result }: { result: AskResponse }) {
-  const { answer } = result;
-
-  return (
-    <section className={styles.answer}>
-      <h3 className={styles.sectionTitle}>Analyst</h3>
-      <p>{answer.summary}</p>
-
-      {answer.evidence.length > 0 && (
-        <>
-          <h4 className={styles.smallTitle}>Evidence</h4>
-          <ul className={styles.list}>
-            {answer.evidence.map((item, i) => (
-              <li key={i}>{item.claim}</li>
-            ))}
-          </ul>
-        </>
-      )}
-
-      {answer.hypotheses.length > 0 && (
-        <>
-          <h4 className={styles.smallTitle}>Possible causes</h4>
-          <ul className={styles.list}>
-            {answer.hypotheses.map((hypothesis, i) => (
-              <li key={i}>
-                <span className={styles.badge}>
-                  {CONFIDENCE_LABEL[hypothesis.confidence] ?? hypothesis.confidence}
-                </span>{" "}
-                {hypothesis.cause}
-                {hypothesis.against.length > 0 && (
-                  <span className={styles.against}> Against: {hypothesis.against.join(" ")}</span>
-                )}
-              </li>
-            ))}
-          </ul>
-        </>
-      )}
-
-      {answer.could_be_artifact && (
-        <>
-          <h4 className={styles.smallTitle}>Could it be a sampling effect?</h4>
-          <p>{answer.could_be_artifact}</p>
-        </>
-      )}
-    </section>
   );
 }

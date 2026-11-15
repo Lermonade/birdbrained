@@ -1,7 +1,7 @@
 import { useCallback, useRef, useState } from "react";
 
 import { api, type AskResponse } from "../../api/client";
-import { askErrorMessage } from "./AnswerView";
+import { askErrorMessage } from "./askErrorMessage";
 
 /** One question as it was asked, so the answer stays labeled after the form changes. */
 export interface AskedQuestion {

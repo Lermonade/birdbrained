@@ -121,46 +121,6 @@
   color: #f2a08f;
 }
 
-.answer {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-  padding-top: 0.75rem;
-  border-top: 1px solid var(--line);
-}
-
-.sectionTitle {
-  font-size: 1rem;
-  font-weight: 700;
-}
-
-.smallTitle {
-  margin-top: 0.4rem;
-  font-size: 0.85rem;
-  font-weight: 700;
-}
-
-.list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-  padding-left: 1.1rem;
-}
-
-.badge {
-  display: inline-block;
-  padding: 0 0.4rem;
-  border-radius: 4px;
-  background: color-mix(in srgb, var(--accent) 18%, transparent);
-  color: var(--accent);
-  font-size: 0.75rem;
-  font-weight: 700;
-}
-
-.against {
-  opacity: 0.75;
-}
-
 .footnote {
   margin-top: 0.4rem;
   font-size: 0.75rem;

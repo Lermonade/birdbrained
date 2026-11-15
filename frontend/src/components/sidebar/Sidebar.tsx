@@ -4,7 +4,7 @@ import { useState, type ReactNode } from "react";
 import {
   Filter,
   SlidersHorizontal,
-  Database,
+  Sparkles,
   ChevronRight,
   ArrowLeft,
   Bird,
@@ -31,15 +31,17 @@ type SidebarPage =
   | "menu"
   | "filters"
   | "visualization"
-  | "data"
+  | "analyst"
   | "species";
 
 interface SidebarProps {
   /** Shown on the menu page, below the species list. */
   templates?: ReactNode;
+  /** The Analyst page's contents. */
+  analyst?: ReactNode;
 }
 
-export default function Sidebar({ templates }: SidebarProps) {
+export default function Sidebar({ templates, analyst }: SidebarProps) {
   const [activePage, setActivePage] =
     useState<SidebarPage>("menu");
 
@@ -176,11 +178,11 @@ export default function Sidebar({ templates }: SidebarProps) {
 
             <button
               className={styles.menuItem}
-              onClick={() => navigateTo("data")}
+              onClick={() => navigateTo("analyst")}
             >
               <span className={styles.menuLabel}>
-                <Database size={19} />
-                Data Settings
+                <Sparkles size={19} />
+                Analyst
               </span>
 
               <ChevronRight
@@ -494,8 +496,8 @@ export default function Sidebar({ templates }: SidebarProps) {
           </div>
         )}
 
-        {/* DATA SETTINGS */}
-        {activePage === "data" && (
+        {/* ANALYST */}
+        {activePage === "analyst" && (
           <div className={styles.page}>
             <button
               className={styles.backButton}
@@ -506,8 +508,10 @@ export default function Sidebar({ templates }: SidebarProps) {
             </button>
 
             <h2 className={styles.heading}>
-              Data Settings
+              Analyst
             </h2>
+
+            {analyst}
           </div>
         )}
 

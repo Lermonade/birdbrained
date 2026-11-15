@@ -27,11 +27,11 @@ def _median_slope(xs: list[float], ys: list[float]) -> float | None:
 
 def check_sampling(species: str, region: str) -> dict:
     """Records per year and whether there are enough for a trend."""
-    regional = store.series(species)["regions"][region]
     years = store.series(species)["years"]
+    regional = store.series_region(species, region) or {"status": ["insufficient"] * len(years)}
     all_birds = {row["year"]: row["records"] for row in store.effort(region)}
     species_counts = store.counts(species, region) or [0] * len(years)
-    sufficiency = store.trends(species)[region]["sufficiency"]
+    sufficiency = store.trend_entry(species, region)["sufficiency"]
     return {
         "sufficient": sufficiency["label"] != "insufficient",
         "sufficiency": sufficiency,
@@ -46,8 +46,8 @@ def check_sampling(species: str, region: str) -> dict:
 def get_trend(species: str, region: str) -> dict:
     """Corrected index per year (the species' share of all bird sightings) and its trend, with raw sightings for context."""
     years = store.years()
-    regional = store.series(species)["regions"][region]
-    entry = store.trends(species)[region]
+    regional = store.series_region(species, region) or {"corrected": [None] * len(years)}
+    entry = store.trend_entry(species, region)
     all_birds = {row["year"]: row["records"] for row in store.effort(region)}
     return {
         "years": years,
@@ -89,7 +89,7 @@ def get_national_context(species: str) -> dict:
 
 def compare_sources(species: str, region: str) -> dict:
     """Our corrected eBird trend against the same method run on iNaturalist records, from 2015."""
-    entry = store.trends(species)[region]
+    entry = store.trend_entry(species, region)
     second = entry.get("secondSource")
     if entry["trend"] is None or second is None:
         return {"available": False, "reason": "No iNaturalist trend for this species and state."}
@@ -106,7 +106,7 @@ def get_survey_trend(species: str, region: str) -> dict:
     survey = store.survey(species, region)
     if survey is None:
         return {"available": False, "reason": "No Breeding Bird Survey trend for this species and state."}
-    trend = store.trends(species)[region]["trend"]
+    trend = store.trend_entry(species, region)["trend"]
     return {
         "available": True,
         "surveyChangePerYear": survey["changePerYear"],
@@ -123,6 +123,8 @@ def get_survey_trend(species: str, region: str) -> dict:
 def get_climate(region: str) -> dict:
     """Breeding-season temperature and rainfall per year, with their trends."""
     rows = store.climate(region)
+    if not rows:
+        return {"available": False, "reason": "Climate data covers US states only."}
     years = [r["year"] for r in rows]
     temp_slope = _median_slope(years, [r["tempC"] for r in rows])
     rain_slope = _median_slope(years, [r["rainMm"] for r in rows])

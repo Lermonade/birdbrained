@@ -37,7 +37,8 @@ def main() -> None:
     regions = json.loads((STATIC / "regions.json").read_text(encoding="utf-8"))
     trends = json.loads((OUT / "trends.json").read_text(encoding="utf-8"))
     key_by_name = {s["commonName"].lower(): s["key"] for s in species}
-    region_by_name = {r["name"].lower(): r["id"] for r in regions}
+    region_by_name = {r["name"].lower(): r["id"] for r in regions
+                      if r.get("country", "United States") in ("United States", "Canada")}
 
     request = urllib.request.Request(BBS_URL, headers={"User-Agent": "birdbrained-pipeline"})
     with urllib.request.urlopen(request, timeout=120) as response:
@@ -72,7 +73,7 @@ def main() -> None:
         missing = [r["name"] for r in regions if r["id"] not in by_region]
         print(f"  {key:<23} {len(by_region):>2} states (none for {len(missing)})")
         for region_id, survey in by_region.items():
-            ours = trends[key][region_id]["trend"]
+            ours = trends.get(key, {}).get(region_id, {}).get("trend")
             if ours is None:
                 continue
             same = (ours["changePerYear"] > 0) == (survey["changePerYear"] > 0)
